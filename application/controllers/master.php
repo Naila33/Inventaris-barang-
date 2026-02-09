@@ -81,6 +81,7 @@ class Master extends CI_Controller
     public function updatedatabarang()
     {
         $this->form_validation->set_rules('id_barang', 'ID', 'required|integer');
+        $this->form_validation->set_rules('kode_barang', 'Kode Barang', 'required|trim');
         $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required|trim');
         $this->form_validation->set_rules('kategori', 'Kategori', 'required|trim');
         $this->form_validation->set_rules('spesifikasi', 'Spesifikasi', 'required|trim');
@@ -93,6 +94,7 @@ class Master extends CI_Controller
             echo json_encode([
                 'status' => false,
                 'errors' => [
+                    'kode_barang' => form_error('kode_barang'),
                     'nama_barang' => form_error('nama_barang'),
                     'kategori' => form_error('kategori'),
                     'spesifikasi' => form_error('spesifikasi'),
@@ -108,6 +110,7 @@ class Master extends CI_Controller
         $id = (int)$this->input->post('id_barang');
         $data = [
             'nama_barang' => $this->input->post('nama_barang'),
+            'kode_barang' => $this->input->post('kode_barang'),
             'kategori' => $this->input->post('kategori'),
             'spesifikasi' => $this->input->post('spesifikasi'),
             'satuan' => $this->input->post('satuan'),

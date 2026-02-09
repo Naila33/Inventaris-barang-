@@ -66,6 +66,11 @@
       <form action="<?= base_url('master/databarang'); ?>" method="post">
         <div class="modal-body">
           <div class="form-group">
+            <label for="kode_barang">Kode barang</label>
+            <input type="text" class="form-control" id="kode_barang" name="kode_barang" placeholder="Masukkan kode barang" value="<?= set_value('kode_barang') ?>" required>
+            <?= form_error('kode_barang', '<small class="text-danger pl-1">', '</small>'); ?>
+          </div>
+          <div class="form-group">
             <label for="nama_barang">Nama barang</label>
             <input type="text" class="form-control" id="nama_barang" name="nama_barang" placeholder="Masukkan nama barang" value="<?= set_value('nama_barang') ?>" required>
             <?= form_error('nama_barang', '<small class="text-danger pl-1">', '</small>'); ?>
@@ -123,6 +128,11 @@
         <form id="formeditdatabarang">
             <input type="hidden" name="id_barang" id="e_id">
             <div class="modal-body">
+              <div class="form-group">
+            <label for="e_kode_barang">Kode barang</label>
+            <input type="text" class="form-control" id="e_kode_barang" name="kode_barang" placeholder="Masukkan kode barang" value="<?= set_value('kode_barang') ?>" required>
+            <?= form_error('kode_barang', '<small class="text-danger pl-1">', '</small>'); ?>
+          </div>
             <div class="form-group">
                 <label for="e_nama_barang">Nama Barang</label>
                 <input type="text" class="form-control" id="e_nama_barang" name="nama_barang" required>

@@ -1,20 +1,18 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Databarang_model extends CI_Model
+class Barangin_model extends CI_Model
 {
-    protected $table = 'databarang';
-   protected $column_order = [null, 'kode_barang', 'nama_barang', 'nama_kategori', 'spesifikasi', 'satuan', 'harga_perolehan', 'tanggal_perolehan', 'umur_ekonomis', null];
-protected $column_search = ['kode_barang', 'nama_barang', 'nama_kategori', 'spesifikasi', 'satuan', 'harga_perolehan', 'tanggal_perolehan', 'umur_ekonomis'];
+    protected $table = 'barangin';
+    protected $column_order = [null, 'tgl_masuk', 'sumberbarang', 'jumlah', 'dokumen_pendukung', null, null];
+    protected $column_search = ['id_barangin', 'tgl_masuk', 'sumberbarang', 'jumlah', 'dokumen_pendukung'];
 
-    protected $order = ['nama_barang' => 'asc'];
+    protected $order = ['tgl_masuk' => 'asc'];
 
     private function _get_datatables_query()
     {
-       $this->db->select('databarang.*, kategoribarang.nama_kategori');
-       $this->db->from('databarang');
-       $this->db->join('kategoribarang', 'kategoribarang.id_kategori = databarang.id_kategori', 'left');
-
+        $this->db->select('id_barangin, tgl_masuk, sumberbarang, jumlah, dokumen_pendukung');
+        $this->db->from('barangin');
 
         if (!empty($_POST['search']['value'])) {
             $this->db->group_start();
@@ -38,11 +36,16 @@ protected $column_search = ['kode_barang', 'nama_barang', 'nama_kategori', 'spes
 
     public function get_datatables()
     {
-        $this->_get_datatables_query();
-        if (isset($_POST['length']) && $_POST['length'] != -1) {
-            $this->db->limit((int) $_POST['length'], (int) $_POST['start']);
+        try {
+            $this->_get_datatables_query();
+            if (isset($_POST['length']) && $_POST['length'] != -1) {
+                $this->db->limit((int) $_POST['length'], (int) $_POST['start']);
+            }
+            return $this->db->get()->result();
+        } catch (Exception $e) {
+            log_message('error', 'Barang_model get_datatables: ' . $e->getMessage());
+            return [];
         }
-        return $this->db->get()->result();
     }
 
     public function count_filtered()

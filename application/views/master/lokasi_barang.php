@@ -4,28 +4,26 @@
   <!-- Page Heading -->
   <h1 class="h3 mb-4 text-gray-800"><?= $title ?></h1>
 
-
 <!-- Prodi: Alerts & Actions -->
 <?= $this->session->flashdata('message'); ?>
 
 
+
 <!-- Prodi: Table List -->
 <div class="table-responsive">
-  <table id="datatable" class="table table-hover">
+  <table id="datatable-lokasi" class="table table-hover">
     <thead>
       <tr>
         <th scope="col">#</th>
-        <th scope="col">Kode Barang</th>
-        <th scope="col">Nama Barang</th>
-        <th scope="col">Kategori</th>
-        <th scope="col">Spesifikasi</th>
-        <th scope="col">Satuan</th>
-        <th scope="col">Harga perolehan</th>
-        <th scope="col">Tanggal perolehan</th>
-        <th scope="col">Umur ekonomis</th>
+        <th scope="col">Kode Lokasi</th>
+        <th scope="col">Nama Lokasi</th>
+        <th scope="col">Gedung</th>
+        <th scope="col">Lantai</th>
+        <th scope="col">Keterangan</th>
       </tr>
     </thead>
     <tbody>
     </tbody>
   </table>
   </div>
+

@@ -1,20 +1,18 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Databarang_model extends CI_Model
+class Mutasi_model extends CI_Model
 {
-    protected $table = 'databarang';
-   protected $column_order = [null, 'kode_barang', 'nama_barang', 'nama_kategori', 'spesifikasi', 'satuan', 'harga_perolehan', 'tanggal_perolehan', 'umur_ekonomis', null];
-protected $column_search = ['kode_barang', 'nama_barang', 'nama_kategori', 'spesifikasi', 'satuan', 'harga_perolehan', 'tanggal_perolehan', 'umur_ekonomis'];
+    protected $table = 'mutasi_barang';
+    protected $column_order = [null, 'id_barang', 'tanggal_mutasi', 'lokasi_asal', 'lokasi_tujuan', 'unit_asal', 'unit_tujuan', 'jumlah', 'penanggung_jawab', null];
+    protected $column_search = ['id_mutasi', 'id_barang', 'tanggal_mutasi', 'lokasi_asal', 'lokasi_tujuan', 'unit_asal', 'unit_tujuan', 'jumlah', 'penanggung_jawab'];
 
-    protected $order = ['nama_barang' => 'asc'];
+    protected $order = ['tanggal_mutasi' => 'asc'];
 
     private function _get_datatables_query()
     {
-       $this->db->select('databarang.*, kategoribarang.nama_kategori');
-       $this->db->from('databarang');
-       $this->db->join('kategoribarang', 'kategoribarang.id_kategori = databarang.id_kategori', 'left');
-
+        $this->db->select('id_mutasi, id_barang, tanggal_mutasi, lokasi_asal, lokasi_tujuan, unit_asal, unit_tujuan, jumlah, penanggung_jawab');
+        $this->db->from($this->table);
 
         if (!empty($_POST['search']['value'])) {
             $this->db->group_start();

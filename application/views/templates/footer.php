@@ -61,72 +61,281 @@ $(document).ready(function() {
             type: "POST"
         },
         columnDefs: [{
-            targets: [0, 9],
+            targets: [0],
             orderable: false
         }],
         columns: [
             { data: 'no' },
             { data: 'kode_barang' },
             { data: 'nama_barang' },
-            { data: 'kategori' },
+            { data: 'nama_kategori' },
             { data: 'spesifikasi' },
             { data: 'satuan' },
             { data: 'harga_perolehan' },
             { data: 'tanggal_perolehan' },
-            { data: 'umur_ekonomis' },
-            { data: 'aksi' }
+            { data: 'umur_ekonomis' }
         ]
     });
 
-    // Edit button click handler
-    $(document).on('click', '.btn-edit-barang', function(e) {
-        e.preventDefault();
-        const id = $(this).data('id');
-        console.log('Edit button clicked, ID:', id);
-        $.post('<?= site_url('master/getdatabarangrow') ?>', { id_barang: id }, function(res) {
-            console.log('Response from server:', res);
-            if (!res || !res.id_barang) {
-                console.log('No valid response or missing id_barang');
-                return;
+    $('#datatable-kategori').DataTable({
+        processing: true,
+        serverSide: true,
+        order: [],
+        ajax: {
+            url: "<?= site_url('master/getkategori') ?>",
+            type: "POST"
+        },
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }],
+        columns: [
+            { data: 'no' },
+            { data: 'nama_kategori' }
+        ]
+    });
+
+    //supplier
+    $('#suppliertable').DataTable({
+        processing: true,
+        serverSide: true,
+        order: [[1, 'asc']],
+        ajax: {
+            url: '<?= site_url('master/getdatasupplier') ?>',
+            type: 'POST'
+        },
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }],
+        columns: [
+            { data: 'no' },
+            { data: 'nama_supplier' },
+            { data: 'kontak' },
+            { data: 'no_telp' },
+            { data: 'kota' },
+            { data: 'status' }
+        ]
+    });
+
+    //lokasi
+    $('#datatable-lokasi').DataTable({
+        processing: true,
+        serverSide: true,
+        order: [[1, 'asc']],
+        ajax: {
+            url: '<?= site_url('master/getdatalokasi') ?>',
+            type: 'POST'
+        },
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }],
+        columns: [
+            { data: 'no' },
+            { data: 'kode_lokasi' },
+            { data: 'nama_lokasi' },
+            { data: 'gedung' },
+            { data: 'lantai' },
+            { data: 'keterangan' }
+        ]
+    });
+
+    //pengguna 
+    $('#datatable-pengguna').DataTable({
+        processing: true,
+        serverSide: true,
+        order: [[1, 'asc']],
+        ajax: {
+            url: '<?= site_url('master/getdatapengguna') ?>',
+            type: 'POST'
+        },
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }],
+        columns: [
+            { data: 'no' },
+            { data: 'nama_pengguna' },
+            { data: 'jenis_pengguna' },
+            { data: 'no_identitas' },
+            { data: 'divisi' },
+            { data: 'unit' },
+            { data: 'no_telp' },
+            { data: 'status' },
+            { data: 'keterangan' }
+        ]
+    });
+
+//barang masuk 
+    $('#datatable-barangmasuk').DataTable({
+        processing: true,
+        serverSide: true,
+        order: [[1, 'asc']],
+        ajax: {
+            url: '<?= site_url('barang/getdatabarangmasuk') ?>',
+            type: 'POST'
+        },
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }],
+        columns: [
+            { data: 'no' },
+            { data: 'tgl_masuk' },
+            { data: 'sumberbarang' },
+            { data: 'jumlah' },
+            { data: 'dokumen_pendukung' },
+            { data: 'aksi', orderable: false }
+        ]
+    });
+
+
+    // Barang Masuk: Edit -  modal
+$(document).on('click', '.btn-edit-barangmasuk', function(e) {
+    e.preventDefault();
+    const id = $(this).data('id_barangin');
+    $.post('<?= site_url('barang/getbarangmasukrow') ?>', { id_barangin: id }, function(res) {
+        if (!res || !res.id_barangin) return;
+        $('#e_id_barangin').val(res.id_barangin);
+        $('#e_tgl_masuk').val(res.tgl_masuk);
+        $('#e_sumberbarang').val(res.sumberbarang);
+        $('#e_jumlah').val(res.jumlah);
+        $('#current_dokumen_pendukung').text(res.dokumen_pendukung ? ('Dokumen saat ini: ' + res.dokumen_pendukung) : '');
+        $('#err_tgl_masuk, #err_sumberbarang, #err_jumlah, #err_dokumen_pendukung').text('');
+        $('#editBarangMasukModal').modal('show');
+    }, 'json');
+});
+
+// Barang Masuk: Edit - submit 
+$('#formeditBarangMasuk').on('submit', function(e) {
+    e.preventDefault();
+    $('#err_tgl_masuk, #err_sumberbarang, #err_jumlah, #err_dokumen_pendukung').text('');
+    const form = document.getElementById('formeditBarangMasuk');
+    const fd = new FormData(form);
+    $.ajax({
+        url: '<?= site_url('barang/updatebarangmasuk') ?>',
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(res) {
+            if (res && res.status) {
+                $('#editBarangMasukModal').modal('hide');
+                $('#datatable-barangmasuk').DataTable().ajax.reload(null, false);
+            } else if (res && res.errors) {
+                $('#err_tgl_masuk').text(res.errors.tgl_masuk || '');
+                $('#err_sumberbarang').text(res.errors.sumberbarang || '');
+                $('#err_jumlah').text(res.errors.jumlah || '');
+                $('#err_dokumen_pendukung').text(res.errors.dokumen_pendukung || '');
             }
-            $('#e_id').val(res.id_barang);
-            $('#e_nama_barang').val(res.nama_barang);
-            $('#e_kategori').val(res.kategori);
-            $('#e_spesifikasi').val(res.spesifikasi);
-            $('#e_satuan').val(res.satuan);
-            $('#e_harga_perolehan').val(res.harga_perolehan);
-            $('#e_tanggal_perolehan').val(res.tanggal_perolehan);
-            $('#e_umur_ekonomis').val(res.umur_ekonomis);
-            $('.text-danger').text('');
-            $('#editdatabarangModal').modal('show');
+        }
+    });
+});
+
+// Barang Masuk: Delete
+$(document).on('click', '.btn-delete-barangmasuk', function(e) {
+    e.preventDefault();
+    if (!confirm('Yakin hapus data barang masuk ini?')) return;
+    const id = $(this).data('id_barangin');
+    $.post('<?= site_url('barang/deletebarangmasuk') ?>', { id_barangin: id }, function(res) {
+        if (res && res.status) {
+            $('#datatable-barangmasuk').DataTable().ajax.reload(null, false);
+        } else {
+            alert(res && res.message ? res.message : 'Gagal menghapus');
+        }
+    }, 'json');
+});
+
+
+    //barang keluar 
+    $('#datatable-barangkeluar').DataTable({
+        processing: false,
+        serverSide: false,
+        order: [[1, 'asc']],
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }]
+    });
+
+    //mutasi 
+    $('#datatable-mutasi').DataTable({
+        processing: true,
+        serverSide: true,
+        order: [[1, 'asc']],
+        columnDefs: [{
+            targets: [0],
+            orderable: false
+        }],
+        ajax: {
+            url: '<?= site_url('mutasi/get_datatables') ?>',
+            type: 'POST'
+        },
+        columns: [
+            { data: 'no' },
+            { data: 'id_barang' },
+            { data: 'tanggal_mutasi' },
+            { data: 'lokasi_asal' },
+            { data: 'lokasi_tujuan' },
+            { data: 'unit_asal' },
+            { data: 'unit_tujuan' },
+            { data: 'jumlah' },
+            { data: 'penanggung_jawab' },
+            { data: 'aksi', orderable: false }
+        ]
+    });  
+
+    // Mutasi: Edit - modal
+    $(document).on('click', '.btn-edit-mutasi', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id_mutasi');
+        $.post('<?= site_url('mutasi/getmutasirow') ?>', { id_mutasi: id }, function(res) {
+            if (!res || !res.id_mutasi) return;
+            $('#e_id_mutasi').val(res.id_mutasi);
+            $('#e_id_barang').val(res.id_barang);
+            $('#e_tanggal_mutasi').val(res.tanggal_mutasi);
+            $('#e_lokasi_asal').val(res.lokasi_asal);
+            $('#e_lokasi_tujuan').val(res.lokasi_tujuan);
+            $('#e_unit_asal').val(res.unit_asal);
+            $('#e_unit_tujuan').val(res.unit_tujuan);
+            $('#e_jumlah').val(res.jumlah);
+            $('#e_penanggung_jawab').val(res.penanggung_jawab);
+            $('#err_id_barang, #err_tanggal_mutasi, #err_lokasi_asal, #err_lokasi_tujuan, #err_unit_asal, #err_unit_tujuan, #err_jumlah, #err_penanggung_jawab').text('');
+            $('#editMutasiModal').modal('show');
         }, 'json');
     });
 
-    // Update form submit handler
-    $('#formeditdatabarang').on('submit', function(e) {
+    // Mutasi: Edit - submit
+    $('#formeditMutasi').on('submit', function(e) {
         e.preventDefault();
-        $.post('<?= site_url('master/updatedatabarang') ?>', $(this).serialize(), function(res) {
+        $('#err_id_barang, #err_tanggal_mutasi, #err_lokasi_asal, #err_lokasi_tujuan, #err_unit_asal, #err_unit_tujuan, #err_jumlah, #err_penanggung_jawab').text('');
+        $.post('<?= site_url('mutasi/updatemutasi') ?>', $(this).serialize(), function(res) {
             if (res && res.status) {
-                $('#editdatabarangModal').modal('hide');
-                $('#datatable').DataTable().ajax.reload(null, false);
+                $('#editMutasiModal').modal('hide');
+                $('#datatable-mutasi').DataTable().ajax.reload(null, false);
             } else if (res && res.errors) {
-                $('#err_nama_barang').text(res.errors.nama_barang || '');
-                $('#err_kategori').text(res.errors.kategori || '');
-                $('#err_spesifikasi').text(res.errors.spesifikasi || '');
-                $('#err_satuan').text(res.errors.satuan || '');
-                $('#err_harga_perolehan').text(res.errors.harga_perolehan || '');
-                $('#err_tanggal_perolehan').text(res.errors.tanggal_perolehan || '');
-                $('#err_umur_ekonomis').text(res.errors.umur_ekonomis || '');
+                $('#err_id_barang').text(res.errors.id_barang || '');
+                $('#err_tanggal_mutasi').text(res.errors.tanggal_mutasi || '');
+                $('#err_lokasi_asal').text(res.errors.lokasi_asal || '');
+                $('#err_lokasi_tujuan').text(res.errors.lokasi_tujuan || '');
+                $('#err_unit_asal').text(res.errors.unit_asal || '');
+                $('#err_unit_tujuan').text(res.errors.unit_tujuan || '');
+                $('#err_jumlah').text(res.errors.jumlah || '');
+                $('#err_penanggung_jawab').text(res.errors.penanggung_jawab || '');
             }
         }, 'json');
     });
-    $(document).on('click', '.btn-delete-barang', function(e) {
+
+    // Mutasi: Delete
+    $(document).on('click', '.btn-delete-mutasi', function(e) {
         e.preventDefault();
-        if (!confirm('Yakin hapus data barang ini?')) return;
-        const id = $(this).data('id');
-        $.post('<?= site_url('master/deletedatabarang') ?>', { id_barang: id }, function(res) {
+        if (!confirm('Yakin hapus data mutasi ini?')) return;
+        const id = $(this).data('id_mutasi');
+        $.post('<?= site_url('mutasi/deletemutasi') ?>', { id_mutasi: id }, function(res) {
             if (res && res.status) {
-                $('#datatable').DataTable().ajax.reload(null, false);
+                $('#datatable-mutasi').DataTable().ajax.reload(null, false);
             } else {
                 alert(res && res.message ? res.message : 'Gagal menghapus');
             }
@@ -134,4 +343,3 @@ $(document).ready(function() {
     });
 });
 </script>
-

@@ -1,20 +1,19 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Databarang_model extends CI_Model
+class Barangout_model extends CI_Model
 {
-    protected $table = 'databarang';
-   protected $column_order = [null, 'kode_barang', 'nama_barang', 'nama_kategori', 'spesifikasi', 'satuan', 'harga_perolehan', 'tanggal_perolehan', 'umur_ekonomis', null];
-protected $column_search = ['kode_barang', 'nama_barang', 'nama_kategori', 'spesifikasi', 'satuan', 'harga_perolehan', 'tanggal_perolehan', 'umur_ekonomis'];
 
-    protected $order = ['nama_barang' => 'asc'];
+    protected $table = 'barangout';
+    protected $column_order = [null, 'id_barang', 'tgl_keluar', 'jenis_tras', 'tujuan', 'pj', 'jumlah', 'batas_wp', 'tgl_kembali', 'status_keterlambatan'];
+    protected $column_search = ['id_barang', 'tgl_keluar', 'jenis_tras', 'tujuan', 'pj', 'jumlah', 'batas_wp', 'tgl_kembali', 'status_keterlambatan'];
+
+    protected $order = ['tgl_keluar' => 'asc'];
 
     private function _get_datatables_query()
     {
-       $this->db->select('databarang.*, kategoribarang.nama_kategori');
-       $this->db->from('databarang');
-       $this->db->join('kategoribarang', 'kategoribarang.id_kategori = databarang.id_kategori', 'left');
-
+        $this->db->select('*');
+        $this->db->from('barangout');
 
         if (!empty($_POST['search']['value'])) {
             $this->db->group_start();
@@ -55,4 +54,5 @@ protected $column_search = ['kode_barang', 'nama_barang', 'nama_kategori', 'spes
     {
         return $this->db->count_all($this->table);
     }
+
 }

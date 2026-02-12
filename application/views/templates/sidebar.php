@@ -17,6 +17,7 @@
             <!-- QUERY MENU -->
 
             <?php 
+            $uri = $this->uri->segment(1);
             $role_id = $this->session->userdata('role_id');
             if (!$role_id) {
                 $role_id = 0;
@@ -54,11 +55,7 @@
 
                 <?php foreach($submenu as $sm) : ?>
 
-                    <?php if($title == $sm['title']) : ?>
-                        <li class="nav-item active">
-                    <?php else : ?>
-                        <li class="nav-item">
-                    <?php endif; ?>
+                    <li class="nav-item <?= ($uri == $sm['url']) ? 'active' : ''; ?>">
 
                 <a class="nav-link pb-0" href="<?= base_url($sm['url']); ?>">
                     <i class="<?= $sm['icon']; ?>"></i>

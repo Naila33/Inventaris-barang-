@@ -6,19 +6,21 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @property CI_Session $session
  * @property CI_DB $db
  * @property CI_Upload $upload
+ * @property Barang_model $barang_model
  * @property Barangin_model $barangin_model
  * @property Barangout_model $Barangout_model
  * @property Databarang_model $Databarang_model
  */
 
-class Barang extends CI_Controller
-{
+class Barang extends CI_Controller {
 
     public function __construct()
     {
         parent::__construct();
         $this->load->library('session');
         $this->load->library('form_validation');
+        $this->load->library('upload');
+        $this->load->model('barang_model');
         $this->load->model('barangin_model');
         $this->load->model('Barangout_model');
         $this->load->model('Databarang_model');
@@ -31,6 +33,99 @@ class Barang extends CI_Controller
                 return;
             }
             redirect('auth');
+        }
+    }
+
+    public function index()
+    {
+        $data['title'] = 'Barang';
+        $data['user'] = $this->db->where(
+            'email',
+            $this->session->userdata('email')
+        )->get('user')->row_array();
+        $data['barang'] = $this->barang_model->get_all();
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/sidebar', $data);
+        $this->load->view('templates/topbar', $data);
+        $this->load->view('barang/index', $data);
+        $this->load->view('templates/footer');
+    }
+
+    public function tambah()
+    {
+        $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required|trim');
+        $this->form_validation->set_rules('kategori', 'Kategori', 'required|trim');
+        $this->form_validation->set_rules('satuan', 'Satuan', 'required|trim');
+        $this->form_validation->set_rules('harga', 'Harga Perolehan', 'required|trim|numeric');
+        $this->form_validation->set_rules('tanggal', 'Tanggal Perolehan', 'required|trim');
+        $this->form_validation->set_rules('umur', 'Umur Ekonomis', 'required|trim|numeric');
+
+        if ($this->form_validation->run() == false) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Data barang gagal ditambahkan. Periksa kembali inputan Anda!</div>');
+            redirect('barang');
+        } else {
+            // Generate QR Code (if GD library is available)
+            $qr_code = '';
+            $kode_barang = 'BRG' . date('YmdHis');
+            
+            if (extension_loaded('gd') && function_exists('ImageCreate')) {
+                $this->load->library('ciqrcode');
+                $qr_code = $kode_barang . '.png';
+                
+                $config['cacheable']    = true;
+                $config['cachedir']     = './assets/';
+                $config['errorlog']     = './assets/';
+                $config['imagedir']     = './assets/img/qrcode/';
+                $config['quality']      = true;
+                $config['size']         = '1024';
+                $config['black']        = array(224,255,255);
+                $config['white']        = array(70,130,180);
+                
+                $params['data'] = $kode_barang;
+                $params['level'] = 'H';
+                $params['size'] = 10;
+                $params['savename'] = FCPATH.$config['imagedir'].$qr_code;
+                
+                $this->ciqrcode->generate($params);
+            } else {
+                // GD library not available, skip QR code generation
+                $qr_code = '';
+                log_message('error', 'GD library not available - QR code generation skipped');
+            }
+
+            // Handle file upload
+            $foto = '';
+            if (isset($_FILES['foto']) && $_FILES['foto']['name'] != '') {
+                $config['upload_path'] = './assets/img/barang/';
+                $config['allowed_types'] = 'jpg|jpeg|png|gif';
+                $config['max_size'] = 2048;
+                $config['encrypt_name'] = TRUE;
+                
+                $this->upload->initialize($config);
+                
+                if ($this->upload->do_upload('foto')) {
+                    $upload_data = $this->upload->data();
+                    $foto = $upload_data['file_name'];
+                }
+            }
+
+            // Prepare data for insertion
+            $data = [
+                'kode_barang' => $kode_barang,
+                'qr_code' => $qr_code,
+                'nama_barang' => $this->input->post('nama_barang'),
+                'kategori' => $this->input->post('kategori'),
+                'spesifikasi' => $this->input->post('spesifikasi'),
+                'satuan' => $this->input->post('satuan'),
+                'harga_perolehan' => str_replace('.', '', $this->input->post('harga')),
+                'tanggal_perolehan' => $this->input->post('tanggal'),
+                'umur_ekonomis' => $this->input->post('umur'),
+                'foto' => $foto
+            ];
+
+            $this->barang_model->insert($data);
+            $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Data barang berhasil ditambahkan!</div>');
+            redirect('barang');
         }
     }
 
@@ -115,7 +210,7 @@ class Barang extends CI_Controller
                 'overwrite' => false,
             ];
 
-            $this->load->library('upload', $config);
+            $this->upload->initialize($config);
             if (!$this->upload->do_upload('dokumen_pendukung')) {
                 $this->output
                     ->set_content_type('application/json')
@@ -286,6 +381,51 @@ class Barang extends CI_Controller
         }
     }
 
+    public function barangout()
+    {
+        $data['title'] = 'Barang Keluar';
+        $data['user'] = $this->db->where(
+            'email',
+            $this->session->userdata('email')
+        )->get('user')->row_array();
+
+        $data['barangkeluar'] = $this->db->get('barangout')->result_array();
+
+        $this->form_validation->set_rules('id_barang', 'ID Barang', 'required|trim');
+        $this->form_validation->set_rules('tgl_keluar', 'Tanggal Keluar', 'required|trim');
+        $this->form_validation->set_rules('jenis_tras', 'Jenis Transaksi', 'required|trim');
+        $this->form_validation->set_rules('tujuan', 'Tujuan', 'required|trim');
+        $this->form_validation->set_rules('pj', 'Penanggung jawab', 'required|trim');
+        $this->form_validation->set_rules('jumlah', 'Jumlah', 'required|trim');
+        $this->form_validation->set_rules('batas_wp', 'Batas waktu', 'required|trim');
+        $this->form_validation->set_rules('tgl_kembali', 'Tanggal kembali', 'required|trim');
+        $this->form_validation->set_rules('status_keterlambatan', 'Status keterlambatan', 'required|trim|in_list[Tepat Waktu,Terlambat,Belum Kembali]');
+
+        if ($this->form_validation->run() == false) {
+            $this->load->view('templates/header', $data);
+            $this->load->view('templates/sidebar', $data);
+            $this->load->view('templates/topbar', $data);
+            $this->load->view('barang/barang_keluar', $data);
+            $this->load->view('templates/footer');
+        } else {
+            $this->db->insert('barangout', [
+                'id_barang' => $this->input->post('id_barang'),
+                'tgl_keluar' => $this->input->post('tgl_keluar'),
+                'jenis_tras' => $this->input->post('jenis_tras'),
+                'tujuan' => $this->input->post('tujuan'),
+                'pj' => $this->input->post('pj'),
+                'jumlah' => $this->input->post('jumlah'),
+                'batas_wp' => $this->input->post('batas_wp'),
+                'tgl_kembali' => $this->input->post('tgl_kembali'),
+                'status_keterlambatan' => $this->input->post('status_keterlambatan'),
+            ]);
+
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => true]));
+        }
+    }
+
     public function getbarangkeluarrow()
     {
         $id = (int)$this->input->post('id_barangout');
@@ -418,46 +558,6 @@ class Barang extends CI_Controller
             ->set_output(json_encode(['status' => true]));
     }
 
-    public function barangout()
-    {
-        $data['title'] = 'Barang Keluar';
-        $data['user'] = $this->db->where(
-            'email',
-            $this->session->userdata('email')
-        )->get('user')->row_array();
-
-        $data['barangkeluar'] = $this->db->get('barangout')->result_array();
-        $data['barang_options'] = $this->Databarang_model->get_barang_options();
-
-        $this->form_validation->set_rules('id_barang', 'ID Barang', 'required|trim');
-        $this->form_validation->set_rules('tgl_keluar', 'Tanggal Keluar', 'required|trim');
-        $this->form_validation->set_rules('jenis_tras', 'Jenis Transaksi', 'required|trim');
-        $this->form_validation->set_rules('tujuan', 'Tujuan', 'required|trim');
-        $this->form_validation->set_rules('pj', 'Tujuan', 'required|trim');
-        $this->form_validation->set_rules('jumlah', 'Tujuan', 'required|trim');
-        $this->form_validation->set_rules('batas_wp', 'Tujuan', 'required|trim');
-        $this->form_validation->set_rules('tgl_kembali', 'Tujuan', 'required|trim');
-        $this->form_validation->set_rules('status_keterlambatan', 'Tujuan', 'required|trim');
-
-        if ($this->form_validation->run() == false) {
-            $this->load->view('templates/header', $data);
-            $this->load->view('templates/sidebar', $data);
-            $this->load->view('templates/topbar', $data);
-            $this->load->view('barang/barang_keluar', $data);
-            $this->load->view('templates/footer');
-        } else {
-            $this->db->insert('barangout', [
-                'tgl_keluar' => $this->input->post('tgl_keluar'),
-                'id_barang' => $this->input->post('id_barang'),
-                'jumlah' => $this->input->post('jumlah'),
-                'dokumen_pendukung' => $this->input->post('dokumen_pendukung'),
-            ]);
-
-            $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Barang keluar berhasil ditambahkan!</div>');
-            redirect('barang/barangout');
-        }
-    }
-
     public function getdatabarangkeluar()
     {
         try {
@@ -479,7 +579,7 @@ class Barang extends CI_Controller
                     'batas_wp' => $row->batas_wp,
                     'tgl_kembali' => $row->tgl_kembali,
                     'status_keterlambatan' => $row->status_keterlambatan,
-                    'aksi' =>'<button class="btn btn-sm btn-primary btn-edit-barangkeluar" data-id_barangout="' . $row->id_barangout . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-barangkeluar" data-id_barangout="' . $row->id_barangout . '">Delete</button>'
+                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-barangkeluar" data-id_barangout="' . $row->id_barangout . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-barangkeluar" data-id_barangout="' . $row->id_barangout . '">Delete</button>'
                 ];
             }
 

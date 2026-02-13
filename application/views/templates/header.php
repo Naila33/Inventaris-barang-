@@ -23,24 +23,6 @@
     <!-- Bootstrap CSS (opsional) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
-
-    <!-- Custom CSS untuk menu active -->
-    <style>
-        .sidebar .nav-item .nav-link.active {
-            color: #fff !important;
-            font-weight: 600;
-        }
-    </style>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
-
 </head>
 
 <body id="page-top">

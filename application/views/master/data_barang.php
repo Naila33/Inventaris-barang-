@@ -29,6 +29,29 @@
       </tr>
     </thead>
     <tbody>
+      <?php if (!empty($databarang)) : ?>
+        <?php $i = 1; foreach ($databarang as $dt) : ?>
+          <tr>
+            <th scope="row"><?= $i++; ?></th>
+            <td><?= htmlspecialchars($dt['kode_barang'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['nama_barang'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['kategori'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['spesifikasi'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['satuan'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['harga_perolehan'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['tanggal_perolehan'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['umur_ekonomis'] ?? ''); ?></td>
+            <td>
+              <a href="#" class="badge badge-success btn-edit-barang" data-id="<?= $dt['id_barang'] ?>">edit</a>
+              <a href="#" class="badge badge-danger btn-delete-barang" data-id="<?= $dt['id_barang'] ?>">delete</a>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      <?php else : ?>
+        <tr>
+          <td colspan="10" class="text-center">Belum ada data barang.</td>
+        </tr>
+      <?php endif; ?>
     </tbody>
   </table>
   </div>

@@ -61,14 +61,14 @@ $(document).ready(function() {
             type: "POST"
         },
         columnDefs: [{
-            targets: [0],
+            targets: [0, 9],
             orderable: false
         }],
         columns: [
             { data: 'no' },
             { data: 'kode_barang' },
             { data: 'nama_barang' },
-            { data: 'nama_kategori' },
+            { data: 'kategori' },
             { data: 'spesifikasi' },
             { data: 'satuan' },
             { data: 'harga_perolehan' },
@@ -271,6 +271,35 @@ $(document).ready(function() {
                 $('#datatable-kategori').DataTable().ajax.reload(null, false);
             } else {
                 alert(res && res.message ? res.message : 'Gagal menghapus');
+            }
+        }, 'json');
+    });
+
+    // Kategori: Edit - modal
+    $(document).on('click', '.btn-edit-kategori', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id_kategori');
+        $('#err_e_nama_kategori').text('');
+        $.post('<?= site_url('master/getkategorirow') ?>', { id_kategori: id }, function(res) {
+            if (!res || !res.id_kategori) return;
+            $('#e_id_kategori').val(res.id_kategori);
+            $('#e_nama_kategori').val(res.nama_kategori || '');
+            $('#editKategoriModal').modal('show');
+        }, 'json');
+    });
+
+    // Kategori: Edit - submit
+    $('#formEditKategori').on('submit', function(e) {
+        e.preventDefault();
+        $('#err_e_nama_kategori').text('');
+        $.post('<?= site_url('master/updatekategori') ?>', $(this).serialize(), function(res) {
+            if (res && res.status) {
+                $('#editKategoriModal').modal('hide');
+                $('#datatable-kategori').DataTable().ajax.reload(null, false);
+            } else if (res && res.errors) {
+                $('#err_e_nama_kategori').text(res.errors.nama_kategori || '');
+            } else {
+                alert(res && res.message ? res.message : 'Gagal menyimpan');
             }
         }, 'json');
     });
@@ -744,39 +773,100 @@ $(document).on('click', '.btn-delete-barangmasuk', function(e) {
         }, 'json');
     });
 
-    // Mutasi: Edit - submit
-    $('#formeditMutasi').on('submit', function(e) {
+    // Update form submit handler
+    $('#formeditdatabarang').on('submit', function(e) {
         e.preventDefault();
-        $('#err_id_barang, #err_tanggal_mutasi, #err_lokasi_asal, #err_lokasi_tujuan, #err_unit_asal, #err_unit_tujuan, #err_jumlah, #err_penanggung_jawab').text('');
-        $.post('<?= site_url('mutasi/updatemutasi') ?>', $(this).serialize(), function(res) {
+        $.post('<?= site_url('master/updatedatabarang') ?>', $(this).serialize(), function(res) {
             if (res && res.status) {
-                $('#editMutasiModal').modal('hide');
-                $('#datatable-mutasi').DataTable().ajax.reload(null, false);
+                $('#editdatabarangModal').modal('hide');
+                $('#datatable').DataTable().ajax.reload(null, false);
             } else if (res && res.errors) {
-                $('#err_id_barang').text(res.errors.id_barang || '');
-                $('#err_tanggal_mutasi').text(res.errors.tanggal_mutasi || '');
-                $('#err_lokasi_asal').text(res.errors.lokasi_asal || '');
-                $('#err_lokasi_tujuan').text(res.errors.lokasi_tujuan || '');
-                $('#err_unit_asal').text(res.errors.unit_asal || '');
-                $('#err_unit_tujuan').text(res.errors.unit_tujuan || '');
-                $('#err_jumlah').text(res.errors.jumlah || '');
-                $('#err_penanggung_jawab').text(res.errors.penanggung_jawab || '');
+                $('#err_nama_barang').text(res.errors.nama_barang || '');
+                $('#err_kategori').text(res.errors.kategori || '');
+                $('#err_spesifikasi').text(res.errors.spesifikasi || '');
+                $('#err_satuan').text(res.errors.satuan || '');
+                $('#err_harga_perolehan').text(res.errors.harga_perolehan || '');
+                $('#err_tanggal_perolehan').text(res.errors.tanggal_perolehan || '');
+                $('#err_umur_ekonomis').text(res.errors.umur_ekonomis || '');
             }
         }, 'json');
     });
-
-    // Mutasi: Delete
-    $(document).on('click', '.btn-delete-mutasi', function(e) {
+    $(document).on('click', '.btn-delete-barang', function(e) {
         e.preventDefault();
-        if (!confirm('Yakin hapus data mutasi ini?')) return;
-        const id = $(this).data('id_mutasi');
-        $.post('<?= site_url('mutasi/deletemutasi') ?>', { id_mutasi: id }, function(res) {
+        if (!confirm('Yakin hapus data barang ini?')) return;
+        const id = $(this).data('id');
+        $.post('<?= site_url('master/deletedatabarang') ?>', { id_barang: id }, function(res) {
             if (res && res.status) {
-                $('#datatable-mutasi').DataTable().ajax.reload(null, false);
+                $('#datatable').DataTable().ajax.reload(null, false);
             } else {
                 alert(res && res.message ? res.message : 'Gagal menghapus');
             }
         }, 'json');
     });
+});
+</script>
+
+<script>
+$(document).ready(function () {
+
+    let table = $('#tableBarang').DataTable();
+
+    $('#tableBarang tbody').on('click', '.btn-edit', function () {
+
+        let btn = $(this);
+
+        $('#edit_id').val(btn.data('id'));
+        $('#edit_nama').val(btn.data('nama'));
+        $('#edit_kategori').val(btn.data('kategori'));
+        $('#edit_harga').val(btn.data('harga'));
+        $('#edit_spesifikasi').val(btn.data('spesifikasi'));
+        $('#edit_satuan').val(btn.data('satuan'));
+        $('#edit_tanggal').val(btn.data('tanggal'));
+        $('#edit_umur').val(btn.data('umur'));
+
+        $('#modalEdit').modal('show');
+    });
+
+});
+</script>
+
+<script>
+$(document).on('click', '.btn-hapus', function () {
+    $('#hapus_id').val($(this).data('id'));
+    $('#hapus_nama').val($(this).data('nama'));
+    $('#modalPenghapusan').modal('show');
+});
+</script>
+
+<script>
+    $('#tablePenghapusan').DataTable();
+</script>
+
+<script>
+$(document).ready(function() {
+
+    var table = $('#table-filter').DataTable({
+        "processing": true,
+        "responsive": true,
+        "ajax": {
+            "url": "<?= base_url('filter/ajax_list') ?>",
+            "type": "POST",
+            "data": function(d) {
+                d.kode_barang  = $('#kode_barang').val();
+                d.nama_barang  = $('#nama_barang').val();
+                d.id_kategori  = $('#id_kategori').val();
+                d.id_lokasi    = $('#id_lokasi').val();
+                d.kondisi      = $('#kondisi').val();
+                d.tanggal_awal = $('#tanggal_awal').val();
+                d.tanggal_akhir= $('#tanggal_akhir').val();
+            }
+        }
+    });
+
+    $('#kode_barang, #nama_barang, #id_kategori, #id_lokasi, #kondisi, #tanggal_awal, #tanggal_akhir')
+        .on('change keyup', function() {
+            table.ajax.reload();
+        });
+
 });
 </script>

@@ -7,7 +7,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @property CI_DB $db
  * @property CI_Upload $upload
  * @property Databarang_model $Databarang_model
+ * @property Kategoribarang_model $Kategoribarang_model
  * @property Lokasi_model $Lokasi_model
+ * @property supplier_model $supplier_model
+ * @property pengguna_model $pengguna_model
  */
 
 class Master extends CI_Controller
@@ -19,11 +22,10 @@ class Master extends CI_Controller
         $this->load->library('session');
         $this->load->library('form_validation');
         $this->load->model('Databarang_model');
-        $this->load->model('Lokasi_model');
-        $this->load->model('Supplier_model');
         $this->load->model('Kategoribarang_model');
+        $this->load->model('Lokasi_model');
         $this->load->model('supplier_model');
-        $this->load->model('pengguna_model'); 
+        $this->load->model('pengguna_model');
         if (!$this->session->userdata('email')) {
             redirect('auth');
         }
@@ -40,15 +42,11 @@ class Master extends CI_Controller
         $this->load->model('Kategoribarang_model');
         $data['kategori'] = $this->db->get('kategoribarang')->result_array();
 
-        $this->db->select('databarang.*, kategoribarang.nama_kategori');
-        $this->db->from('databarang');
-        $this->db->join('kategoribarang', 'kategoribarang.id_kategori = databarang.id_kategori', 'left');
-        $data['databarang'] = $this->db->get()->result_array();
-
+        $data['databarang'] = $this->db->get('databarang')->result_array();
         $data['open_modal'] = false;
 
         $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required|trim');
-        $this->form_validation->set_rules('id_kategori', 'ID kategori', 'required|trim');
+        $this->form_validation->set_rules('id_kategori', 'Kategori', 'required|integer');
         $this->form_validation->set_rules('spesifikasi', 'Spesifikasi', 'required|trim');
         $this->form_validation->set_rules('satuan', 'Satuan', 'required|trim');
         $this->form_validation->set_rules('harga_perolehan', 'Harga Perolehan', 'required|trim');
@@ -67,7 +65,7 @@ class Master extends CI_Controller
         } else {
             $this->db->insert('databarang', [
                 'nama_barang' => $this->input->post('nama_barang'),
-                'id_kategori' => $this->input->post('id_kategori'),
+                'id_kategori' => (int)$this->input->post('id_kategori'),
                 'spesifikasi' => $this->input->post('spesifikasi'),
                 'satuan' => $this->input->post('satuan'),
                 'harga_perolehan' => $this->input->post('harga_perolehan'),
@@ -79,47 +77,10 @@ class Master extends CI_Controller
         }
     }
 
-    public function getdatabarang()
-    {
-        try {
-            $list = $this->Databarang_model->get_datatables();
-            $data = [];
-            $no = isset($_POST['start']) ? (int)$_POST['start'] : 0;
-
-            foreach ($list as $row) {
-                $no++;
-                $data[] = [
-                    'no' => $no,
-                    'kode_barang' => $row->kode_barang,
-                    'nama_barang' => $row->nama_barang,
-                    'nama_kategori' => $row->nama_kategori,
-                    'spesifikasi' => $row->spesifikasi,
-                    'satuan' => $row->satuan,
-                    'harga_perolehan' => $row->harga_perolehan,
-                    'tanggal_perolehan' => $row->tanggal_perolehan,
-                    'umur_ekonomis' => $row->umur_ekonomis,
-                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-barang" data-id_barang="' . $row->id_barang . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-barang" data-id_barang="' . $row->id_barang . '">Delete</button>'
-                ];
-            }
-
-            echo json_encode([
-                "draw" => isset($_POST['draw']) ? (int)$_POST['draw'] : 0,  
-                "recordsTotal" => $this->Databarang_model->count_all(),
-                "recordsFiltered" => $this->Databarang_model->count_filtered(),
-                "data" => $data
-            ]);
-        } catch (Exception $e) {
-            echo json_encode([
-                "error" => true,
-                "message" => $e->getMessage()
-            ]);
-        }
-    }
-
     public function addbarang()
     {
         $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required|trim');
-        $this->form_validation->set_rules('id_kategori', 'ID kategori', 'required|integer');
+        $this->form_validation->set_rules('id_kategori', 'Kategori', 'required|integer');
         $this->form_validation->set_rules('spesifikasi', 'Spesifikasi', 'required|trim');
         $this->form_validation->set_rules('satuan', 'Satuan', 'required|trim');
         $this->form_validation->set_rules('harga_perolehan', 'Harga Perolehan', 'required|trim');
@@ -179,7 +140,7 @@ class Master extends CI_Controller
     {
         $this->form_validation->set_rules('id_barang', 'ID', 'required|integer');
         $this->form_validation->set_rules('nama_barang', 'Nama Barang', 'required|trim');
-        $this->form_validation->set_rules('id_kategori', 'ID kategori', 'required|integer');
+        $this->form_validation->set_rules('id_kategori', 'Kategori', 'required|integer');
         $this->form_validation->set_rules('spesifikasi', 'Spesifikasi', 'required|trim');
         $this->form_validation->set_rules('satuan', 'Satuan', 'required|trim');
         $this->form_validation->set_rules('harga_perolehan', 'Harga Perolehan', 'required|trim');
@@ -236,6 +197,43 @@ class Master extends CI_Controller
             ->set_output(json_encode(['status' => true]));
     }
 
+    public function getdatabarang()
+    {
+        try {
+            $list = $this->Databarang_model->get_datatables();
+            $data = [];
+            $no = isset($_POST['start']) ? (int)$_POST['start'] : 0;
+
+            foreach ($list as $row) {
+                $no++;
+                $data[] = [
+                    'no' => $no,
+                    'kode_barang' => $row->kode_barang,
+                    'nama_barang' => $row->nama_barang,
+                    'kategori' => isset($row->nama_kategori) ? $row->nama_kategori : '',
+                    'spesifikasi' => $row->spesifikasi,
+                    'satuan' => $row->satuan,
+                    'harga_perolehan' => $row->harga_perolehan,
+                    'tanggal_perolehan' => $row->tanggal_perolehan,
+                    'umur_ekonomis' => $row->umur_ekonomis,
+                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-barang" data-id_barang="' . $row->id_barang . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-barang" data-id_barang="' . $row->id_barang . '">Delete</button>'
+                ];
+            }
+
+            echo json_encode([
+                "draw" => isset($_POST['draw']) ? (int)$_POST['draw'] : 0,  
+                "recordsTotal" => $this->Databarang_model->count_all(),
+                "recordsFiltered" => $this->Databarang_model->count_filtered(),
+                "data" => $data
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                "error" => true,
+                "message" => $e->getMessage()
+            ]);
+        }
+    }
+
     public function kategoribarang()
     {
         $data['title'] = 'Kategori Barang';
@@ -267,22 +265,6 @@ class Master extends CI_Controller
         }
     }
 
-    public function deletekategori()
-    {
-        $id = (int)$this->input->post('id_kategori');
-        if (!$id) {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => false, 'message' => 'ID tidak valid']));
-            return;
-        }
-
-        $this->db->delete('kategoribarang', ['id_kategori' => $id]);
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['status' => true]));
-    }
-
     public function getkategori()
     {
         try {
@@ -295,7 +277,7 @@ class Master extends CI_Controller
                 $data[] = [
                     'no' => $no,
                     'nama_kategori' => $row->nama_kategori,
-                    'aksi' => '<button class="btn btn-sm btn-danger btn-delete-kategori" data-id_kategori="' . $row->id_kategori . '">Delete</button>'
+                    'aksi' => '<button class="btn btn-sm btn-danger btn-delete-kategori" data-id_kategori="' . $row->id_kategori . '">Hapus</button>'
                 ];
             }
 
@@ -311,6 +293,22 @@ class Master extends CI_Controller
                 "message" => $e->getMessage()
             ]);
         }
+    }
+
+    public function getkategorirow()
+    {
+        $id = (int)$this->input->post('id_kategori');
+        if (!$id) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([]));
+            return;
+        }
+
+        $row = $this->db->where('id_kategori', $id)->get('kategoribarang')->row_array();
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($row ?: []));
     }
 
     public function lokasibarang()
@@ -362,7 +360,6 @@ class Master extends CI_Controller
 
             foreach ($list as $row) {
                 $no++;
-                $rowId = isset($row->id_lokasi) ? $row->id_lokasi : (isset($row->kode_lokasi) ? $row->kode_lokasi : '');
                 $data[] = [
                     'no' => $no,
                     'kode_lokasi' => $row->kode_lokasi,
@@ -370,7 +367,7 @@ class Master extends CI_Controller
                     'gedung' => $row->gedung,
                     'lantai' => $row->lantai,
                     'keterangan' => $row->keterangan,
-                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-lokasi" data-id_lokasi="' . $rowId . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-lokasi" data-id_lokasi="' . $rowId . '">Delete</button>'
+                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-lokasi" data-id_lokasi="' . $row->id_lokasi . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-lokasi" data-id_lokasi="' . $row->id_lokasi . '">Hapus</button>'
                 ];
             }
 
@@ -390,23 +387,15 @@ class Master extends CI_Controller
 
     public function getlokasirow()
     {
-        $id = (string)$this->input->post('id_lokasi');
-        if ($id === '') {
+        $id = (int)$this->input->post('id_lokasi');
+        if (!$id) {
             $this->output
                 ->set_content_type('application/json')
                 ->set_output(json_encode([]));
             return;
         }
 
-        if ($this->db->field_exists('id_lokasi', 'lokasi')) {
-            $row = $this->db->where('id_lokasi', (int)$id)->get('lokasi')->row_array();
-        } else {
-            $row = $this->db->where('kode_lokasi', $id)->get('lokasi')->row_array();
-            if ($row && !isset($row['id_lokasi']) && isset($row['kode_lokasi'])) {
-                $row['id_lokasi'] = $row['kode_lokasi'];
-            }
-        }
-
+        $row = $this->db->where('id_lokasi', $id)->get('lokasi')->row_array();
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode($row ?: []));
@@ -414,13 +403,7 @@ class Master extends CI_Controller
 
     public function updatelokasi()
     {
-        $hasIdLokasi = $this->db->field_exists('id_lokasi', 'lokasi');
-
-        if ($hasIdLokasi) {
-            $this->form_validation->set_rules('id_lokasi', 'ID', 'required|integer');
-        } else {
-            $this->form_validation->set_rules('id_lokasi', 'Kode Lokasi', 'required|trim');
-        }
+        $this->form_validation->set_rules('id_lokasi', 'ID', 'required|integer');
         $this->form_validation->set_rules('kode_lokasi', 'Kode Lokasi', 'required|trim');
         $this->form_validation->set_rules('nama_lokasi', 'Nama Lokasi', 'required|trim');
         $this->form_validation->set_rules('gedung', 'Gedung', 'required|trim');
@@ -443,14 +426,8 @@ class Master extends CI_Controller
             return;
         }
 
-        $idRaw = (string)$this->input->post('id_lokasi');
-        if ($hasIdLokasi) {
-            $this->db->where('id_lokasi', (int)$idRaw);
-        } else {
-            $this->db->where('kode_lokasi', $idRaw);
-        }
-
-        $this->db->update('lokasi', [
+        $id = (int)$this->input->post('id_lokasi');
+        $this->db->where('id_lokasi', $id)->update('lokasi', [
             'kode_lokasi' => $this->input->post('kode_lokasi'),
             'nama_lokasi' => $this->input->post('nama_lokasi'),
             'gedung' => $this->input->post('gedung'),
@@ -463,32 +440,9 @@ class Master extends CI_Controller
             ->set_output(json_encode(['status' => true]));
     }
 
-    public function deletelokasi()
-    {
-        $idRaw = (string)$this->input->post('id_lokasi');
-        if ($idRaw === '') {
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => false, 'message' => 'ID tidak valid']));
-            return;
-        }
-
-        if ($this->db->field_exists('id_lokasi', 'lokasi')) {
-            $this->db->where('id_lokasi', (int)$idRaw);
-        } else {
-            $this->db->where('kode_lokasi', $idRaw);
-        }
-
-        $this->db->delete('lokasi');
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['status' => true]));
-    }
-
     public function supplierbarang()
     {
         $data['title'] = 'Supplier Barang';
-
         $data['user'] = $this->db->where(
             'email',
             $this->session->userdata('email')
@@ -527,7 +481,6 @@ class Master extends CI_Controller
         try {
             $list = $this->supplier_model->get_datatables();
             $data = [];
-
             $no = isset($_POST['start']) ? (int)$_POST['start'] : 0;
 
             foreach ($list as $row) {
@@ -539,7 +492,7 @@ class Master extends CI_Controller
                     'no_telp' => $row->no_telp,
                     'kota' => $row->kota,
                     'status' => $row->status,
-                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-supplier" data-id_supplier="' . $row->id_supplier . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-supplier" data-id_supplier="' . $row->id_supplier . '">Delete</button>'
+                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-supplier" data-id_supplier="' . $row->id_supplier . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-supplier" data-id_supplier="' . $row->id_supplier . '">Hapus</button>'
                 ];
             }
 
@@ -557,17 +510,56 @@ class Master extends CI_Controller
         }
     }
 
-    public function deletesupplier()
+    public function getsupplierrow()
     {
         $id = (int)$this->input->post('id_supplier');
         if (!$id) {
             $this->output
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => false, 'message' => 'ID tidak valid']));
+                ->set_output(json_encode([]));
             return;
         }
 
-        $this->db->delete('supplier', ['id_supplier' => $id]);
+        $row = $this->db->where('id_supplier', $id)->get('supplier')->row_array();
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($row ?: []));
+    }
+
+    public function updatesupplier()
+    {
+        $this->form_validation->set_rules('id_supplier', 'ID', 'required|integer');
+        $this->form_validation->set_rules('nama_supplier', 'Nama Supplier', 'required|trim');
+        $this->form_validation->set_rules('kontak', 'Kontak Supplier', 'required|trim');
+        $this->form_validation->set_rules('no_telp', 'Nomor Telepon', 'required|trim');
+        $this->form_validation->set_rules('kota', 'Kota', 'required|trim');
+        $this->form_validation->set_rules('status', 'Status', 'required|trim');
+
+        if ($this->form_validation->run() == false) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => false,
+                    'errors' => [
+                        'nama_supplier' => strip_tags(form_error('nama_supplier')),
+                        'kontak' => strip_tags(form_error('kontak')),
+                        'no_telp' => strip_tags(form_error('no_telp')),
+                        'kota' => strip_tags(form_error('kota')),
+                        'status' => strip_tags(form_error('status')),
+                    ]
+                ]));
+            return;
+        }
+
+        $id = (int)$this->input->post('id_supplier');
+        $this->db->where('id_supplier', $id)->update('supplier', [
+            'nama_supplier' => $this->input->post('nama_supplier'),
+            'kontak' => $this->input->post('kontak'),
+            'no_telp' => $this->input->post('no_telp'),
+            'kota' => $this->input->post('kota'),
+            'status' => $this->input->post('status'),
+        ]);
+
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode(['status' => true]));
@@ -585,12 +577,12 @@ class Master extends CI_Controller
         $data['pengguna'] = $this->db->get('pengguna_barang')->result_array();
 
         $this->form_validation->set_rules('nama_pengguna', 'Nama Pengguna', 'required|trim');
-        $this->form_validation->set_rules('jenis_pengguna', 'Jenis Pengguna', 'required|trim|in_list[Pegawai,Umum,Lainnya]');
+        $this->form_validation->set_rules('jenis_pengguna', 'Jenis Pengguna', 'required|trim');
         $this->form_validation->set_rules('no_identitas', 'Nomor Identitas', 'required|trim');
         $this->form_validation->set_rules('divisi', 'Divisi', 'required|trim');
         $this->form_validation->set_rules('unit', 'Unit', 'required|trim');
         $this->form_validation->set_rules('no_telp', 'Nomor Telepon', 'required|trim');
-        $this->form_validation->set_rules('status', 'Status', 'required|trim|in_list[Aktif,Nonaktif]');
+        $this->form_validation->set_rules('status', 'Status', 'required|trim');
         $this->form_validation->set_rules('keterangan', 'Keterangan', 'required|trim');
 
         if ($this->form_validation->run() == false) {
@@ -637,7 +629,7 @@ class Master extends CI_Controller
                     'no_telp' => $row->no_telp,
                     'status' => $row->status,
                     'keterangan' => $row->keterangan,
-                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-pengguna" data-id_pengguna="' . $row->id_pengguna . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-pengguna" data-id_pengguna="' . $row->id_pengguna . '">Delete</button>'
+                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-pengguna" data-id_pengguna="' . $row->id_pengguna . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-pengguna" data-id_pengguna="' . $row->id_pengguna . '">Hapus</button>'
                 ];
             }
 
@@ -655,7 +647,7 @@ class Master extends CI_Controller
         }
     }
 
-    public function getpengguna()
+    public function getpenggunarow()
     {
         $id = (int)$this->input->post('id_pengguna');
         if (!$id) {
@@ -671,27 +663,16 @@ class Master extends CI_Controller
             ->set_output(json_encode($row ?: []));
     }
 
-    public function getpenggunarow()
-    {
-        $this->getpengguna();
-    }
-
     public function updatepengguna()
     {
-        $hasIdPengguna = $this->db->field_exists('id_pengguna', 'pengguna_barang');
-
-        if ($hasIdPengguna) {
-            $this->form_validation->set_rules('id_pengguna', 'ID', 'required|integer');
-        } else {
-            $this->form_validation->set_rules('id_pengguna', 'Kode Pengguna', 'required|trim');
-        }
+        $this->form_validation->set_rules('id_pengguna', 'ID', 'required|integer');
         $this->form_validation->set_rules('nama_pengguna', 'Nama Pengguna', 'required|trim');
-        $this->form_validation->set_rules('jenis_pengguna', 'Jenis Pengguna', 'required|trim|in_list[Pegawai,Umum,Lainnya]');
+        $this->form_validation->set_rules('jenis_pengguna', 'Jenis Pengguna', 'required|trim');
         $this->form_validation->set_rules('no_identitas', 'Nomor Identitas', 'required|trim');
-        $this->form_validation->set_rules('divisi', 'Divisi', 'required|trim|in_list[IT,Keuangan,HRD,Umum,Logistik]');
+        $this->form_validation->set_rules('divisi', 'Divisi', 'required|trim');
         $this->form_validation->set_rules('unit', 'Unit', 'required|trim');
         $this->form_validation->set_rules('no_telp', 'Nomor Telepon', 'required|trim');
-        $this->form_validation->set_rules('status', 'Status', 'required|trim|in_list[Aktif,Nonaktif]');
+        $this->form_validation->set_rules('status', 'Status', 'required|trim');
         $this->form_validation->set_rules('keterangan', 'Keterangan', 'required|trim');
 
         if ($this->form_validation->run() == false) {
@@ -713,14 +694,8 @@ class Master extends CI_Controller
             return;
         }
 
-        $idRaw = (string)$this->input->post('id_pengguna');
-        if ($hasIdPengguna) {
-            $this->db->where('id_pengguna', (int)$idRaw);
-        } else {
-            $this->db->where('kode_pengguna', $idRaw);
-        }
-
-        $this->db->update('pengguna_barang', [
+        $id = (int)$this->input->post('id_pengguna');
+        $this->db->where('id_pengguna', $id)->update('pengguna_barang', [
             'nama_pengguna' => $this->input->post('nama_pengguna'),
             'jenis_pengguna' => $this->input->post('jenis_pengguna'),
             'no_identitas' => $this->input->post('no_identitas'),

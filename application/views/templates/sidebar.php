@@ -1,4 +1,6 @@
- <!-- Sidebar -->
+<?php $title = $title ?? ''; ?>
+
+<!-- Sidebar -->
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
@@ -17,7 +19,6 @@
             <!-- QUERY MENU -->
 
             <?php 
-            $uri = $this->uri->segment(1);
             $role_id = $this->session->userdata('role_id');
             if (!$role_id) {
                 $role_id = 0;
@@ -55,9 +56,20 @@
 
                 <?php foreach($submenu as $sm) : ?>
 
-                    <li class="nav-item <?= ($uri == $sm['url']) ? 'active' : ''; ?>">
+                    <?php
+                    $submenuUrl = $sm['url'];
+                    if ($submenuUrl === 'barang') {
+                        $submenuUrl = 'barang/index';
+                    }
+                    ?>
 
-                <a class="nav-link pb-0" href="<?= base_url($sm['url']); ?>">
+                    <?php if($title == $sm['title']) : ?>
+                        <li class="nav-item active">
+                    <?php else : ?>
+                        <li class="nav-item">
+                    <?php endif; ?>
+
+                <a class="nav-link pb-0" href="<?= base_url($submenuUrl); ?>">
                     <i class="<?= $sm['icon']; ?>"></i>
                     <span><?= $sm['title']; ?></span></a>
             </li>

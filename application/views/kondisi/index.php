@@ -1,62 +1,65 @@
+<!-- Begin Page Content -->
 <div class="container-fluid">
 
-    <h1 class="h3 mb-4 text-gray-800">Kondisi Barang</h1>
+  <!-- Page Heading -->
+  <h1 class="h3 mb-4 text-gray-800"><?= $title ?></h1>
 
-    <?php if ($this->session->flashdata('success')) : ?>
-        <div class="alert alert-success">
-            <?= $this->session->flashdata('success'); ?>
-        </div>
-    <?php endif; ?>
+<!-- Prodi: Alerts & Actions -->
+<?= $this->session->flashdata('message'); ?>
 
-    <table id="tableKondisi" class="table table-bordered table-striped">
+    <div class="table-responsive">
+  <table id="datatable-kondisi" class="table table-hover">
         <thead>
             <tr>
                 <th>No</th>
                 <th>Nama Barang</th>
                 <th>Kode Barang</th>
                 <th>Kondisi</th>
-                <th>Ubah Kondisi</th>
+                <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
-            <?php if (!empty($barang)) : ?>
-                <?php $no = 1; foreach ($barang as $b) : ?>
-                    <tr>
-                        <td><?= $no++; ?></td>
-                        <td><?= $b->nama_barang; ?></td>
-                        <td><?= $b->kode_barang; ?></td>
-                        <td><?= $b->kondisi; ?></td>
-                        <td>
-                            <a href="<?= base_url('kondisi/edit/'.$b->id_barang); ?>" 
-                               class="btn btn-warning btn-sm">
-                               Edit
-                            </a>
-
-                            <a href="<?= base_url('kondisi/hapus/'.$b->id_barang); ?>" 
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Yakin mau hapus data ini?')">
-                               Hapus
-                            </a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else : ?>
-                <tr>
-                    <td colspan="5" class="text-center">Tidak ada data</td>
-                </tr>
-            <?php endif; ?>
         </tbody>
     </table>
-
 </div>
 
-<!-- DataTables JavaScript -->
-<script>
-$(document).ready(function() {
-    $('#tableKondisi').DataTable({
-        columnDefs: [
-            { searchable: false, targets: [0, 4] }
-        ]
-    });
-});
-</script>
+<div class="modal fade" id="editKondisiModal" tabindex="-1" role="dialog" aria-labelledby="editKondisiLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editKondisiLabel">Edit Kondisi</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="formEditKondisi">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="e_id_barang">Barang</label>
+            <select class="form-control" id="e_id_barang" name="id_barang" required>
+              <option value="">Pilih barang</option>
+            </select>
+            <small class="text-danger pl-1" id="err_id_barang"></small>
+          </div>
+
+          <div class="form-group">
+            <label for="e_kondisi">Kondisi</label>
+            <select class="form-control" id="e_kondisi" name="kondisi" required>
+              <option value="">Pilih kondisi</option>
+              <option value="Baik">Baik</option>
+              <option value="Rusak Ringan">Rusak Ringan</option>
+              <option value="Rusak Berat">Rusak Berat</option>
+              <option value="Hilang">Hilang</option>
+              <option value="Kadaluarsa">Kadaluarsa</option>
+            </select>
+            <small class="text-danger pl-1" id="err_kondisi"></small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

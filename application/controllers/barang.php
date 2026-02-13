@@ -7,6 +7,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @property CI_DB $db
  * @property CI_Upload $upload
  * @property Barangin_model $barangin_model
+ * @property Barangout_model $Barangout_model
+ * @property Databarang_model $Databarang_model
  */
 
 class Barang extends CI_Controller
@@ -18,6 +20,8 @@ class Barang extends CI_Controller
         $this->load->library('session');
         $this->load->library('form_validation');
         $this->load->model('barangin_model');
+        $this->load->model('Barangout_model');
+        $this->load->model('Databarang_model');
         if (!$this->session->userdata('email')) {
             if ($this->input->is_ajax_request()) {
                 $this->output
@@ -258,8 +262,8 @@ class Barang extends CI_Controller
                     'sumberbarang' => $row->sumberbarang,
                     'jumlah' => $row->jumlah,
                     'dokumen_pendukung' => $dokUrl,
-                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-barangmasuk" data-id_barangin="'.$row->id_barangin.'">Edit</button>
-                           <button class="btn btn-sm btn-danger btn-delete-barangmasuk" data-id_barangin="'.$row->id_barangin.'">Delete</button>'
+                    'aksi' => '<button class="btn btn-sm btn-primary btn-edit-barangmasuk" data-id_barangin="' . $row->id_barangin . '">Edit</button>
+                           <button class="btn btn-sm btn-danger btn-delete-barangmasuk" data-id_barangin="' . $row->id_barangin . '">Delete</button>'
                 ];
             }
 
@@ -282,6 +286,138 @@ class Barang extends CI_Controller
         }
     }
 
+    public function getbarangkeluarrow()
+    {
+        $id = (int)$this->input->post('id_barangout');
+        if (!$id) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([]));
+            return;
+        }
+
+        $row = $this->db->where('id_barangout', $id)->get('barangout')->row_array();
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($row ?: []));
+    }
+
+    public function addbarangkeluar()
+    {
+        $this->form_validation->set_rules('id_barang', 'ID Barang', 'required|trim');
+        $this->form_validation->set_rules('tgl_keluar', 'Tanggal Keluar', 'required|trim');
+        $this->form_validation->set_rules('jenis_tras', 'Jenis Transaksi', 'required|trim|in_list[Dipinjam,Dipindahkan,Dihapus]');
+        $this->form_validation->set_rules('tujuan', 'Tujuan', 'required|trim');
+        $this->form_validation->set_rules('pj', 'Penanggung jawab', 'required|trim');
+        $this->form_validation->set_rules('jumlah', 'Jumlah', 'required|trim');
+        $this->form_validation->set_rules('batas_wp', 'Batas waktu', 'required|trim');
+        $this->form_validation->set_rules('tgl_kembali', 'Tanggal kembali', 'required|trim');
+        $this->form_validation->set_rules('status_keterlambatan', 'Status keterlambatan', 'required|trim|in_list[Tepat Waktu,Terlambat,Belum Kembali]');
+
+        if ($this->form_validation->run() == false) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => false,
+                    'errors' => [
+                        'id_barang' => strip_tags(form_error('id_barang')),
+                        'tgl_keluar' => strip_tags(form_error('tgl_keluar')),
+                        'jenis_tras' => strip_tags(form_error('jenis_tras')),
+                        'tujuan' => strip_tags(form_error('tujuan')),
+                        'pj' => strip_tags(form_error('pj')),
+                        'jumlah' => strip_tags(form_error('jumlah')),
+                        'batas_wp' => strip_tags(form_error('batas_wp')),
+                        'tgl_kembali' => strip_tags(form_error('tgl_kembali')),
+                        'status_keterlambatan' => strip_tags(form_error('status_keterlambatan')),
+                    ]
+                ]));
+            return;
+        }
+
+        $this->db->insert('barangout', [
+            'id_barang' => $this->input->post('id_barang'),
+            'tgl_keluar' => $this->input->post('tgl_keluar'),
+            'jenis_tras' => $this->input->post('jenis_tras'),
+            'tujuan' => $this->input->post('tujuan'),
+            'pj' => $this->input->post('pj'),
+            'jumlah' => $this->input->post('jumlah'),
+            'batas_wp' => $this->input->post('batas_wp'),
+            'tgl_kembali' => $this->input->post('tgl_kembali'),
+            'status_keterlambatan' => $this->input->post('status_keterlambatan'),
+        ]);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => true]));
+    }
+
+    public function updatebarangkeluar()
+    {
+        $this->form_validation->set_rules('id_barangout', 'ID', 'required|integer');
+        $this->form_validation->set_rules('id_barang', 'ID Barang', 'required|trim');
+        $this->form_validation->set_rules('tgl_keluar', 'Tanggal Keluar', 'required|trim');
+        $this->form_validation->set_rules('jenis_tras', 'Jenis Transaksi', 'required|trim|in_list[Dipinjam,Dipindahkan,Dihapus]');
+        $this->form_validation->set_rules('tujuan', 'Tujuan', 'required|trim');
+        $this->form_validation->set_rules('pj', 'Penanggung jawab', 'required|trim');
+        $this->form_validation->set_rules('jumlah', 'Jumlah', 'required|trim');
+        $this->form_validation->set_rules('batas_wp', 'Batas waktu', 'required|trim');
+        $this->form_validation->set_rules('tgl_kembali', 'Tanggal kembali', 'required|trim');
+        $this->form_validation->set_rules('status_keterlambatan', 'Status keterlambatan', 'required|trim|in_list[Tepat Waktu,Terlambat,Belum Kembali]');
+
+        if ($this->form_validation->run() == false) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => false,
+                    'errors' => [
+                        'id_barang' => strip_tags(form_error('id_barang')),
+                        'tgl_keluar' => strip_tags(form_error('tgl_keluar')),
+                        'jenis_tras' => strip_tags(form_error('jenis_tras')),
+                        'tujuan' => strip_tags(form_error('tujuan')),
+                        'pj' => strip_tags(form_error('pj')),
+                        'jumlah' => strip_tags(form_error('jumlah')),
+                        'batas_wp' => strip_tags(form_error('batas_wp')),
+                        'tgl_kembali' => strip_tags(form_error('tgl_kembali')),
+                        'status_keterlambatan' => strip_tags(form_error('status_keterlambatan')),
+                    ]
+                ]));
+            return;
+        }
+
+        $id = (int)$this->input->post('id_barangout');
+        $this->db->where('id_barangout', $id)->update('barangout', [
+            'id_barang' => $this->input->post('id_barang'),
+            'tgl_keluar' => $this->input->post('tgl_keluar'),
+            'jenis_tras' => $this->input->post('jenis_tras'),
+            'tujuan' => $this->input->post('tujuan'),
+            'pj' => $this->input->post('pj'),
+            'jumlah' => $this->input->post('jumlah'),
+            'batas_wp' => $this->input->post('batas_wp'),
+            'tgl_kembali' => $this->input->post('tgl_kembali'),
+            'status_keterlambatan' => $this->input->post('status_keterlambatan'),
+        ]);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => true]));
+    }
+
+    public function deletebarangkeluar()
+    {
+        $id = (int)$this->input->post('id_barangout');
+        if (!$id) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => false, 'message' => 'ID tidak valid']));
+            return;
+        }
+
+        $this->db->delete('barangout', ['id_barangout' => $id]);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => true]));
+    }
+
     public function barangout()
     {
         $data['title'] = 'Barang Keluar';
@@ -291,6 +427,7 @@ class Barang extends CI_Controller
         )->get('user')->row_array();
 
         $data['barangkeluar'] = $this->db->get('barangout')->result_array();
+        $data['barang_options'] = $this->Databarang_model->get_barang_options();
 
         $this->form_validation->set_rules('id_barang', 'ID Barang', 'required|trim');
         $this->form_validation->set_rules('tgl_keluar', 'Tanggal Keluar', 'required|trim');
@@ -315,8 +452,53 @@ class Barang extends CI_Controller
                 'jumlah' => $this->input->post('jumlah'),
                 'dokumen_pendukung' => $this->input->post('dokumen_pendukung'),
             ]);
+
             $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Barang keluar berhasil ditambahkan!</div>');
             redirect('barang/barangout');
+        }
+    }
+
+    public function getdatabarangkeluar()
+    {
+        try {
+            $list = $this->Barangout_model->get_datatables();
+            $data = [];
+
+            $no = isset($_POST['start']) ? (int)$_POST['start'] : 0;
+
+            foreach ($list as $row) {
+                $no++;
+                $data[] = [
+                    'no' => $no,
+                    'id_barang' => $row->id_barang,
+                    'tgl_keluar' => $row->tgl_keluar,
+                    'jenis_tras' => $row->jenis_tras,
+                    'tujuan' => $row->tujuan,
+                    'pj' => $row->pj,
+                    'jumlah' => $row->jumlah,
+                    'batas_wp' => $row->batas_wp,
+                    'tgl_kembali' => $row->tgl_kembali,
+                    'status_keterlambatan' => $row->status_keterlambatan,
+                    'aksi' =>'<button class="btn btn-sm btn-primary btn-edit-barangkeluar" data-id_barangout="' . $row->id_barangout . '">Edit</button> <button class="btn btn-sm btn-danger btn-delete-barangkeluar" data-id_barangout="' . $row->id_barangout . '">Delete</button>'
+                ];
+            }
+
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'draw' => isset($_POST['draw']) ? (int)$_POST['draw'] : 0,
+                    'recordsTotal' => $this->Barangout_model->count_all(),
+                    'recordsFiltered' => $this->Barangout_model->count_filtered(),
+                    'data' => $data
+                ]));
+        } catch (Exception $e) {
+            $this->output
+                ->set_status_header(500)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'error' => true,
+                    'message' => $e->getMessage()
+                ]));
         }
     }
 }

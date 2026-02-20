@@ -21,11 +21,13 @@ class Master extends CI_Controller
         parent::__construct();
         $this->load->library('session');
         $this->load->library('form_validation');
+        $this->load->helper('pengelolaan');
         $this->load->model('Databarang_model');
         $this->load->model('Kategoribarang_model');
         $this->load->model('Lokasi_model');
         $this->load->model('supplier_model');
         $this->load->model('pengguna_model');
+        is_logged_in();
         if (!$this->session->userdata('email')) {
             redirect('auth');
         }

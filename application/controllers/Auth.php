@@ -125,7 +125,7 @@ public function index()
 
         }
 
- public function blocked(){
+         public function blocked(){
             $this->load->view('auth/blocked');
         }
     }

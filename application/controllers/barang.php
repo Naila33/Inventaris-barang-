@@ -20,10 +20,12 @@ class Barang extends CI_Controller {
         $this->load->library('session');
         $this->load->library('form_validation');
         $this->load->library('upload');
+        $this->load->helper('pengelolaan');
         $this->load->model('barang_model');
         $this->load->model('barangin_model');
         $this->load->model('Barangout_model');
         $this->load->model('Databarang_model');
+        is_logged_in();
         if (!$this->session->userdata('email')) {
             if ($this->input->is_ajax_request()) {
                 $this->output

@@ -7,6 +7,8 @@ class Kategori extends CI_Controller {
     {
         parent::__construct();
         $this->load->model('Kategori_model');
+        $this->load->helper('pengelolaan');
+        is_logged_in();
     }
 
     public function index()

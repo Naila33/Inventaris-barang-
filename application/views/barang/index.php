@@ -1,6 +1,14 @@
-<button class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalTambah">
-    + Tambah Barang
-</button>
+<!-- Begin Page Content -->
+    <div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800"><?= $title ?></h1>
+
+<!-- Prodi: Alerts & Actions -->
+<?= $this->session->flashdata('message'); ?>
+<a href="" class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalTambah">Tambah Barang</a>
+
+
 
 <div class="table-responsive">
 <table id="tableBarang" class="table table-bordered">

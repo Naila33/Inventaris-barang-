@@ -71,6 +71,7 @@ $(document).ready(function() {
             { data: 'kategori' },
             { data: 'spesifikasi' },
             { data: 'satuan' },
+            { data: 'lokasi' },
             { data: 'harga_perolehan' },
             { data: 'tanggal_perolehan' },
             { data: 'umur_ekonomis' },
@@ -80,7 +81,7 @@ $(document).ready(function() {
 
     $('#formAddBarang').on('submit', function(e) {
         e.preventDefault();
-        $('#err_nama_barang, #err_id_kategori, #err_spesifikasi, #err_satuan, #err_harga_perolehan, #err_tanggal_perolehan, #err_umur_ekonomis').text('');
+        $('#err_nama_barang, #err_id_kategori, #err_spesifikasi, #err_satuan, #err_lokasi, #err_harga_perolehan, #err_tanggal_perolehan, #err_umur_ekonomis').text('');
         $.post('<?= site_url('master/addbarang') ?>', $(this).serialize(), function(res) {
             if (res && res.status) {
                 $('#newBarangModal').modal('hide');
@@ -91,6 +92,7 @@ $(document).ready(function() {
                 $('#err_id_kategori').text(res.errors.id_kategori || '');
                 $('#err_spesifikasi').text(res.errors.spesifikasi || '');
                 $('#err_satuan').text(res.errors.satuan || '');
+                $('#err_lokasi').text(res.errors.lokasi || ''); 
                 $('#err_harga_perolehan').text(res.errors.harga_perolehan || '');
                 $('#err_tanggal_perolehan').text(res.errors.tanggal_perolehan || '');
                 $('#err_umur_ekonomis').text(res.errors.umur_ekonomis || '');
@@ -103,7 +105,7 @@ $(document).ready(function() {
     $(document).on('click', '.btn-edit-barang', function(e) {
         e.preventDefault();
         const id = $(this).data('id_barang');
-        $('#err_e_nama_barang, #err_e_id_kategori, #err_e_spesifikasi, #err_e_satuan, #err_e_harga_perolehan, #err_e_tanggal_perolehan, #err_e_umur_ekonomis').text('');
+        $('#err_e_nama_barang, #err_e_id_kategori, #err_e_spesifikasi, #err_e_satuan, #err_e_lokasi, #err_e_harga_perolehan, #err_e_tanggal_perolehan, #err_e_umur_ekonomis').text('');
         $.post('<?= site_url('master/getbarangrow') ?>', { id_barang: id }, function(res) {
             if (!res || !res.id_barang) return;
             $('#e_id_barang').val(res.id_barang);
@@ -111,6 +113,7 @@ $(document).ready(function() {
             $('#e_id_kategori').val(res.id_kategori || '');
             $('#e_spesifikasi').val(res.spesifikasi || '');
             $('#e_satuan').val(res.satuan || '');
+            $('#e_lokasi').val(res.id_lokasi || ''); 
             $('#e_harga_perolehan').val(res.harga_perolehan || '');
             $('#e_tanggal_perolehan').val(res.tanggal_perolehan || '');
             $('#e_umur_ekonomis').val(res.umur_ekonomis || '');
@@ -120,7 +123,7 @@ $(document).ready(function() {
 
     $('#formEditBarang').on('submit', function(e) {
         e.preventDefault();
-        $('#err_e_nama_barang, #err_e_id_kategori, #err_e_spesifikasi, #err_e_satuan, #err_e_harga_perolehan, #err_e_tanggal_perolehan, #err_e_umur_ekonomis').text('');
+        $('#err_e_nama_barang, #err_e_id_kategori, #err_e_spesifikasi, #err_e_satuan, #err_e_lokasi, #err_e_harga_perolehan, #err_e_tanggal_perolehan, #err_e_umur_ekonomis').text('');
         $.post('<?= site_url('master/updatebarang') ?>', $(this).serialize(), function(res) {
             if (res && res.status) {
                 $('#editBarangModal').modal('hide');
@@ -130,6 +133,7 @@ $(document).ready(function() {
                 $('#err_e_id_kategori').text(res.errors.id_kategori || '');
                 $('#err_e_spesifikasi').text(res.errors.spesifikasi || '');
                 $('#err_e_satuan').text(res.errors.satuan || '');
+                $('#err_e_lokasi').text(res.errors.lokasi || ''); 
                 $('#err_e_harga_perolehan').text(res.errors.harga_perolehan || '');
                 $('#err_e_tanggal_perolehan').text(res.errors.tanggal_perolehan || '');
                 $('#err_e_umur_ekonomis').text(res.errors.umur_ekonomis || '');

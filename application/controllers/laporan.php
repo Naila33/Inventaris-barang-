@@ -51,43 +51,51 @@ class Laporan extends CI_Controller {
 
     public function get_data()
     {
-        $jenis_laporan = $this->input->post('jenis_laporan');
-        
-        if (!$jenis_laporan) {
-            echo json_encode(['status' => 'error', 'message' => 'Jenis laporan harus dipilih']);
-            return;
-        }
-        
-        $data = [];
-        switch($jenis_laporan) {
-            case 'inventaris':
-                $data = $this->get_inventaris_data();
-                break;
-            case 'barang_masuk':
-                $data = $this->get_barang_masuk_data();
-                break;
-            case 'barang_keluar':
-                $data = $this->get_barang_keluar_data();
-                break;
-            case 'peminjaman':
-                $data = $this->get_peminjaman_data();
-                break;
-            case 'kondisi':
-                $data = $this->get_kondisi_data();
-                break;
-            case 'penghapusan':
-                $data = $this->get_penghapusan_data();
-                break;
-            default:
-                echo json_encode(['status' => 'error', 'message' => 'Jenis laporan tidak valid']);
+        try {
+            $jenis_laporan = $this->input->post('jenis_laporan');
+            
+            if (!$jenis_laporan) {
+                echo json_encode(['status' => 'error', 'message' => 'Jenis laporan harus dipilih']);
                 return;
+            }
+            
+            $data = [];
+            switch($jenis_laporan) {
+                case 'inventaris':
+                    $data = $this->get_inventaris_data();
+                    break;
+                case 'barang_masuk':
+                    $data = $this->get_barang_masuk_data();
+                    break;
+                case 'barang_keluar':
+                    $data = $this->get_barang_keluar_data();
+                    break;
+                case 'peminjaman':
+                    $data = $this->get_peminjaman_data();
+                    break;
+                case 'kondisi':
+                    $data = $this->get_kondisi_data();
+                    break;
+                case 'penghapusan':
+                    $data = $this->get_penghapusan_data();
+                    break;
+                default:
+                    echo json_encode(['status' => 'error', 'message' => 'Jenis laporan tidak valid']);
+                    return;
+            }
+            
+            echo json_encode([
+                'status' => 'success',
+                'data' => $data,
+                'jenis_laporan' => $jenis_laporan
+            ]);
+            
+        } catch (Exception $e) {
+            echo json_encode([
+                'status' => 'error', 
+                'message' => 'Database error: ' . $e->getMessage()
+            ]);
         }
-        
-        echo json_encode([
-            'status' => 'success',
-            'data' => $data,
-            'jenis_laporan' => $jenis_laporan
-        ]);
     }
 
     private function get_inventaris_data($tanggal_awal = null, $tanggal_akhir = null)

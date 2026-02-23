@@ -26,7 +26,7 @@ public function __construct()
 
 public function index()
     {
-        $data['title'] = 'Dashboard';
+        $data['title'] = 'Management Role';
         $data['user'] = $this->db->where('email', 
         $this->session->userdata('email'))->get('user')->row_array();
         $data['role'] = $this->db->get('user_role')->result_array();

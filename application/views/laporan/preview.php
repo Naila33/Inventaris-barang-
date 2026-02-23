@@ -74,7 +74,7 @@
       <div class="table-responsive">
         <?php switch($jenis_laporan): 
           case 'inventaris': ?>
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" id="tabelLaporanPreview" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>No</th>
@@ -104,7 +104,7 @@
             </table>
 
           <?php break; case 'barang_masuk': ?>
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" id="tabelLaporanPreview" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>No</th>
@@ -128,7 +128,7 @@
             </table>
 
           <?php break; case 'barang_keluar': ?>
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" id="tabelLaporanPreview" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>No</th>
@@ -158,7 +158,7 @@
             </table>
 
           <?php break; case 'peminjaman': ?>
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" id="tabelLaporanPreview" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>No</th>
@@ -188,7 +188,7 @@
             </table>
 
           <?php break; case 'kondisi': ?>
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" id="tabelLaporanPreview" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>No</th>
@@ -214,7 +214,7 @@
             </table>
 
           <?php break; case 'penghapusan': ?>
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" id="tabelLaporanPreview" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>No</th>
@@ -262,5 +262,37 @@
     box-shadow: none !important;
     border: 1px solid #ddd !important;
   }
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_paginate {
+    display: none !important;
+  }
 }
 </style>
+
+<script>
+$(document).ready(function() {
+      $('#tabelLaporanPreview').DataTable({
+        responsive: true,
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/id.json",
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data per halaman",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Selanjutnya",
+                previous: "Sebelumnya"
+            },
+            zeroRecords: "Tidak ada data yang ditemukan",
+            emptyTable: "Tidak ada data tersedia"
+        },
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+        order: []
+    });
+});
+</script>

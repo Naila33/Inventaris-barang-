@@ -24,7 +24,8 @@
                 </select>
             </div>
             <div class="col-md-6">
-                <label>&nbsp;</label><br>
+                <label for="customSearch">Cari Data</label>
+                <input type="text" id="customSearch" class="form-control" placeholder="Ketik untuk mencari..." onkeyup="searchTable()">
             </div>
         </div>
     <p class="mt-2">Memuat data...</p>
@@ -138,214 +139,305 @@ function loadData() {
         },
         body: `jenis_laporan=${jenisLaporan}`
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        console.log('Response:', data);
+        console.log('Response data:', data);
         document.getElementById('loading').style.display = 'none';
         
         if (data.status === 'success') {
             currentData = data.data;
             displayData(data.data, data.jenis_laporan);
         } else {
-            alert('Error: ' + data.message);
+            console.error('Server error:', data);
+            alert('Error: ' + (data.message || 'Terjadi kesalahan dari server'));
         }
     })
     .catch(error => {
         document.getElementById('loading').style.display = 'none';
-        console.error('Error:', error);
-        alert('Terjadi kesalahan saat memuat data');
+        console.error('Fetch error:', error);
+        alert('Terjadi kesalahan saat memuat data: ' + error.message);
     });
 }
 
 // Display data in table
 function displayData(data, jenisLaporan) {
-    // Update info
-    document.getElementById('jenisLaporanBadge').textContent = getLaporanName(jenisLaporan);
-    document.getElementById('tanggalCetak').textContent = new Date().toLocaleString('id-ID');
-    document.getElementById('periode').textContent = 'Semua Data';
-    document.getElementById('totalData').textContent = data.length;
-    
-    // Setup table header and body
-    setupTable(jenisLaporan, data);
-    
-    // Show preview section
-    document.getElementById('previewSection').style.display = 'block';
+    try {
+        // Update info dengan validasi
+        const badge = document.getElementById('jenisLaporanBadge');
+        const tanggal = document.getElementById('tanggalCetak');
+        const periode = document.getElementById('periode');
+        const total = document.getElementById('totalData');
+        
+        if (badge) badge.textContent = getLaporanName(jenisLaporan);
+        if (tanggal) tanggal.textContent = new Date().toLocaleString('id-ID');
+        if (periode) periode.textContent = 'Semua Data';
+        if (total) total.textContent = data.length;
+        
+        // Setup table header and body
+        setupTable(jenisLaporan, data);
+        
+        // Initialize DataTable
+        initializeDataTable();
+        
+        // Show preview section
+        const previewSection = document.getElementById('previewSection');
+        if (previewSection) previewSection.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error in displayData:', error);
+        alert('Terjadi kesalahan saat menampilkan data: ' + error.message);
+    }
 }
 
 // Setup table based on jenis laporan
 function setupTable(jenisLaporan, data) {
-    const tableHeader = document.getElementById('tableHeader');
-    const tableBody = document.getElementById('tableBody');
-    
-    let headerHTML = '';
-    let bodyHTML = '';
-    
-    switch(jenisLaporan) {
-        case 'inventaris':
-            headerHTML = `
-                <tr>
-                    <th>No</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th>Kategori</th>
-                    <th>Lokasi</th>
-                    <th>Kondisi</th>
-                    <th>Harga</th>
-                    <th>Tanggal Perolehan</th>
-                </tr>
-            `;
-            data.forEach((item, index) => {
-                bodyHTML += `
+    try {
+        const tableHeader = document.getElementById('tableHeader');
+        const tableBody = document.getElementById('tableBody');
+        
+        if (!tableHeader || !tableBody) {
+            throw new Error('Table header atau body tidak ditemukan');
+        }
+        
+        let headerHTML = '';
+        let bodyHTML = '';
+        
+        switch(jenisLaporan) {
+            case 'inventaris':
+                headerHTML = `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${item.kode_barang}</td>
-                        <td>${item.nama_barang}</td>
-                        <td>${item.nama_kategori || '-'}</td>
-                        <td>${item.nama_lokasi || '-'}</td>
-                        <td>${item.kondisi || 'Baik'}</td>
-                        <td>Rp ${formatNumber(item.harga_perolehan || 0)}</td>
-                        <td>${formatDate(item.tanggal_perolehan)}</td>
+                        <th>No</th>
+                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Kategori</th>
+                        <th>Lokasi</th>
+                        <th>Kondisi</th>
+                        <th>Harga Perolehan</th>
+                        <th>Tanggal Perolehan</th>
                     </tr>
                 `;
-            });
-            break;
-            
-        case 'barang_masuk':
-            headerHTML = `
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal Masuk</th>
-                    <th>Sumber Barang</th>
-                    <th>Jumlah</th>
-                    <th>Dokumen</th>
-                </tr>
-            `;
-            data.forEach((item, index) => {
-                bodyHTML += `
+                data.forEach((item, index) => {
+                    bodyHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.kode_barang}</td>
+                            <td>${item.nama_barang}</td>
+                            <td>${item.nama_kategori || '-'}</td>
+                            <td>${item.nama_lokasi || '-'}</td>
+                            <td>${item.kondisi || 'Baik'}</td>
+                            <td>Rp ${formatNumber(item.harga_perolehan || 0)}</td>
+                            <td>${formatDate(item.tanggal_perolehan)}</td>
+                        </tr>
+                    `;
+                });
+                break;
+                
+            case 'barang_masuk':
+                headerHTML = `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${formatDate(item.tgl_masuk)}</td>
-                        <td>${item.sumberbarang}</td>
-                        <td>${item.jumlah}</td>
-                        <td>${item.dokumen_pendukung || '-'}</td>
+                        <th>No</th>
+                        <th>Tanggal Masuk</th>
+                        <th>Sumber Barang</th>
+                        <th>Jumlah</th>
+                        <th>Dokumen</th>
                     </tr>
                 `;
-            });
-            break;
-            
-        case 'barang_keluar':
-            headerHTML = `
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal Keluar</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th>Jenis Transaksi</th>
-                    <th>Tujuan</th>
-                    <th>Penanggung Jawab</th>
-                    <th>Jumlah</th>
-                </tr>
-            `;
-            data.forEach((item, index) => {
-                bodyHTML += `
+                data.forEach((item, index) => {
+                    bodyHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${formatDate(item.tgl_masuk)}</td>
+                            <td>${item.sumberbarang}</td>
+                            <td>${item.jumlah}</td>
+                            <td>${item.dokumen_pendukung || '-'}</td>
+                        </tr>
+                    `;
+                });
+                break;
+                
+            case 'barang_keluar':
+                headerHTML = `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${formatDate(item.tgl_keluar)}</td>
-                        <td>${item.kode_barang || '-'}</td>
-                        <td>${item.nama_barang || '-'}</td>
-                        <td>${item.jenis_tras}</td>
-                        <td>${item.tujuan}</td>
-                        <td>${item.pj}</td>
-                        <td>${item.jumlah}</td>
+                        <th>No</th>
+                        <th>Tanggal Keluar</th>
+                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Jenis Transaksi</th>
+                        <th>Tujuan</th>
+                        <th>Penanggung Jawab</th>
+                        <th>Jumlah</th>
                     </tr>
                 `;
-            });
-            break;
-            
-        case 'peminjaman':
-            headerHTML = `
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal Pinjam</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th>Peminjam</th>
-                    <th>Tujuan</th>
-                    <th>Jumlah</th>
-                    <th>Status</th>
-                </tr>
-            `;
-            data.forEach((item, index) => {
-                bodyHTML += `
+                data.forEach((item, index) => {
+                    bodyHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${formatDate(item.tgl_keluar)}</td>
+                            <td>${item.kode_barang || '-'}</td>
+                            <td>${item.nama_barang || '-'}</td>
+                            <td>${item.jenis_tras}</td>
+                            <td>${item.tujuan}</td>
+                            <td>${item.pj}</td>
+                            <td>${item.jumlah}</td>
+                        </tr>
+                    `;
+                });
+                break;
+                
+            case 'peminjaman':
+                headerHTML = `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${formatDate(item.tgl_keluar)}</td>
-                        <td>${item.kode_barang || '-'}</td>
-                        <td>${item.nama_barang || '-'}</td>
-                        <td>${item.pj}</td>
-                        <td>${item.tujuan}</td>
-                        <td>${item.jumlah}</td>
-                        <td>${item.status_keterlambatan}</td>
+                        <th>No</th>
+                        <th>Tanggal Pinjam</th>
+                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Peminjam</th>
+                        <th>Tujuan</th>
+                        <th>Jumlah</th>
+                        <th>Status</th>
                     </tr>
                 `;
-            });
-            break;
-            
-        case 'kondisi':
-            headerHTML = `
-                <tr>
-                    <th>No</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th>Kategori</th>
-                    <th>Lokasi</th>
-                    <th>Kondisi</th>
-                    <th>Spesifikasi</th>
-                </tr>
-            `;
-            data.forEach((item, index) => {
-                bodyHTML += `
+                data.forEach((item, index) => {
+                    bodyHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${formatDate(item.tgl_keluar)}</td>
+                            <td>${item.kode_barang || '-'}</td>
+                            <td>${item.nama_barang || '-'}</td>
+                            <td>${item.pj}</td>
+                            <td>${item.tujuan}</td>
+                            <td>${item.jumlah}</td>
+                            <td>${item.status_keterlambatan}</td>
+                        </tr>
+                    `;
+                });
+                break;
+                
+            case 'kondisi':
+                headerHTML = `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${item.kode_barang}</td>
-                        <td>${item.nama_barang}</td>
-                        <td>${item.nama_kategori || '-'}</td>
-                        <td>${item.nama_lokasi || '-'}</td>
-                        <td>${item.kondisi || 'Baik'}</td>
-                        <td>${item.spesifikasi || '-'}</td>
+                        <th>No</th>
+                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Kategori</th>
+                        <th>Kondisi</th>
+                        <th>Spesifikasi</th>
                     </tr>
                 `;
-            });
-            break;
-            
-        case 'penghapusan':
-            headerHTML = `
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal Penghapusan</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th>Jenis Penghapusan</th>
-                    <th>Keterangan</th>
-                </tr>
-            `;
-            data.forEach((item, index) => {
-                bodyHTML += `
+                data.forEach((item, index) => {
+                    bodyHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.kode_barang}</td>
+                            <td>${item.nama_barang}</td>
+                            <td>${item.nama_kategori || '-'}</td>
+                            <td>${item.kondisi || 'Baik'}</td>
+                            <td>${item.spesifikasi || '-'}</td>
+                        </tr>
+                    `;
+                });
+                break;
+                
+            case 'penghapusan':
+                headerHTML = `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${formatDate(item.tanggal_penghapusan)}</td>
-                        <td>${item.kode_barang || '-'}</td>
-                        <td>${item.nama_barang || '-'}</td>
-                        <td>${item.jenis_penghapusan}</td>
-                        <td>${item.keterangan || '-'}</td>
+                        <th>No</th>
+                        <th>Tanggal Penghapusan</th>
+                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Jenis Penghapusan</th>
+                        <th>Keterangan</th>
                     </tr>
                 `;
-            });
-            break;
+                data.forEach((item, index) => {
+                    bodyHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${formatDate(item.tanggal_penghapusan)}</td>
+                            <td>${item.kode_barang || '-'}</td>
+                            <td>${item.nama_barang || '-'}</td>
+                            <td>${item.jenis_penghapusan}</td>
+                            <td>${item.keterangan || '-'}</td>
+                        </tr>
+                    `;
+                });
+                break;
+                
+            default:
+                throw new Error('Jenis laporan tidak valid');
+        }
+        
+        tableHeader.innerHTML = headerHTML;
+        if (bodyHTML) {
+            tableBody.innerHTML = bodyHTML;
+        } else {
+            // Hitung jumlah kolom header secara aman
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = headerHTML;
+            const headerCols = tempDiv.querySelectorAll('th').length;
+            tableBody.innerHTML = `<tr><td colspan="${headerCols}" class="text-center">Tidak ada data</td></tr>`;
+        }
+        
+    } catch (error) {
+        console.error('Error in setupTable:', error);
+        throw error; // Re-throw untuk ditangkap di displayData
+    }
+}
+
+
+function initializeDataTable() {
+    if ($.fn.DataTable.isDataTable('#tabelLaporan')) {
+        $('#tabelLaporan').DataTable().destroy();
     }
     
-    tableHeader.innerHTML = headerHTML;
-    tableBody.innerHTML = bodyHTML || '<tr><td colspan="100%" class="text-center">Tidak ada data</td></tr>';
+    // Pastikan tabel memiliki header yang valid
+    const tableHeader = document.querySelector('#tabelLaporan thead tr');
+    if (!tableHeader || tableHeader.querySelectorAll('th').length === 0) {
+        console.warn('Table header is empty, skipping DataTable initialization');
+        return;
+    }
+    
+    $('#tabelLaporan').DataTable({
+        responsive: true,
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/id.json",
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data per halaman",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Selanjutnya",
+                previous: "Sebelumnya"
+            },
+            zeroRecords: "Tidak ada data yang ditemukan",
+            emptyTable: "Tidak ada data tersedia"
+        },
+        dom: '<"row"<"col-sm-12"i>>rt<"row"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
+        order: [],
+        initComplete: function() {
+            // Sembunyikan default search
+            $('#tabelLaporan_filter').hide();
+        }
+    });
+}
+
+// Custom search function
+function searchTable() {
+    const searchTerm = $('#customSearch').val().toLowerCase();
+    
+    if ($.fn.DataTable.isDataTable('#tabelLaporan')) {
+        const table = $('#tabelLaporan').DataTable();
+        table.search(searchTerm).draw();
+    }
 }
 
 // Export PDF

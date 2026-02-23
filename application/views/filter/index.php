@@ -1,6 +1,8 @@
 <!-- Begin Page Content -->
-    <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Filter Data Barang</h1>
+<div class="container-fluid">
+
+  <!-- Page Heading -->
+  <h1 class="h3 mb-4 text-gray-800"><?= $title ?></h1>
 
   <!-- FILTER FORM -->
   <div class="row mb-4">

@@ -22,6 +22,7 @@
         <th scope="col">Kategori</th>
         <th scope="col">Spesifikasi</th>
         <th scope="col">Satuan</th>
+        <th scope="col">Lokasi</th>
         <th scope="col">Harga perolehan</th>
         <th scope="col">Tanggal perolehan</th>
         <th scope="col">Umur ekonomis</th>
@@ -38,6 +39,7 @@
             <td><?= htmlspecialchars($dt['kategori'] ?? ''); ?></td>
             <td><?= htmlspecialchars($dt['spesifikasi'] ?? ''); ?></td>
             <td><?= htmlspecialchars($dt['satuan'] ?? ''); ?></td>
+            <td><?= htmlspecialchars($dt['lokasi'] ?? ''); ?></td>
             <td><?= htmlspecialchars($dt['harga_perolehan'] ?? ''); ?></td>
             <td><?= htmlspecialchars($dt['tanggal_perolehan'] ?? ''); ?></td>
             <td><?= htmlspecialchars($dt['umur_ekonomis'] ?? ''); ?></td>
@@ -56,7 +58,7 @@
   </table>
   </div>
 
-  <div class="modal fade" id="newBarangModal" tabindex="-1" role="dialog" aria-labelledby="newBarangLabel" aria-hidden="true">
+  <div class="modal fade" id="newBarangModal" tabindex="-1" role="dialog" aria-labelledby="newBarangLabel">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -95,6 +97,18 @@
               <small class="text-danger pl-1" id="err_satuan"></small>
             </div>
             <div class="form-group">
+              <label for="lokasi">Lokasi</label>
+              <select class="form-control" id="lokasi" name="id_lokasi" required>
+                <option value="">Pilih Lokasi</option>
+                <?php if (isset($lokasi) && is_array($lokasi)) : ?>
+                  <?php foreach ($lokasi as $l) : ?>
+                    <option value="<?= $l['id_lokasi'] ?>"><?= $l['nama_lokasi'] ?></option>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </select>
+              <small class="text-danger pl-1" id="err_lokasi"></small>
+            </div>
+            <div class="form-group">
               <label for="harga_perolehan">Harga Perolehan</label>
               <input type="number" class="form-control" id="harga_perolehan" name="harga_perolehan" required>
               <small class="text-danger pl-1" id="err_harga_perolehan"></small>
@@ -119,7 +133,7 @@
     </div>
   </div>
 
-  <div class="modal fade" id="editBarangModal" tabindex="-1" role="dialog" aria-labelledby="editBarangLabel" aria-hidden="true">
+  <div class="modal fade" id="editBarangModal" tabindex="-1" role="dialog" aria-labelledby="editBarangLabel">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -157,6 +171,18 @@
               <label for="e_satuan">Satuan</label>
               <input type="text" class="form-control" id="e_satuan" name="satuan" required>
               <small class="text-danger pl-1" id="err_e_satuan"></small>
+            </div>
+            <div class="form-group">
+              <label for="e_lokasi">Lokasi</label>
+              <select class="form-control" id="e_lokasi" name="id_lokasi" required>
+                <option value="">Pilih Lokasi</option>
+                <?php if (isset($lokasi) && is_array($lokasi)) : ?>
+                  <?php foreach ($lokasi as $l) : ?>
+                    <option value="<?= $l['id_lokasi'] ?>"><?= $l['nama_lokasi'] ?></option>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </select>
+              <small class="text-danger pl-1" id="err_e_lokasi"></small>
             </div>
             <div class="form-group">
               <label for="e_harga_perolehan">Harga Perolehan</label>

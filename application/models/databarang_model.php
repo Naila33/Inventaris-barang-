@@ -65,9 +65,10 @@ protected $column_search = ['kode_barang', 'nama_barang', 'nama_kategori', 'spes
     private function _get_datatables_query()
     {
         $this->db
-            ->select('databarang.id_barang, databarang.kode_barang, databarang.nama_barang, databarang.spesifikasi, databarang.satuan, databarang.harga_perolehan, databarang.tanggal_perolehan, databarang.umur_ekonomis, kategoribarang.nama_kategori')
+            ->select('databarang.id_barang, databarang.kode_barang, databarang.nama_barang, databarang.spesifikasi, databarang.satuan, databarang.harga_perolehan, databarang.tanggal_perolehan, databarang.umur_ekonomis, kategoribarang.nama_kategori, lokasi.nama_lokasi')
             ->from($this->table)
-            ->join('kategoribarang', 'kategoribarang.id_kategori = databarang.id_kategori', 'left');
+            ->join('kategoribarang', 'kategoribarang.id_kategori = databarang.id_kategori', 'left')
+            ->join('lokasi', 'lokasi.id_lokasi = databarang.id_lokasi', 'left');
 
         if (!empty($_POST['search']['value'])) {
             $this->db->group_start();

@@ -1,6 +1,8 @@
-<div class="container-fluid">
+<!-- Begin Page Content -->
+    <div class="container-fluid">
 
-    <h1 class="h3 mb-4 text-gray-800">Penghapusan Barang</h1>
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800"><?= $title ?></h1>
 
     <!-- Filter -->
     <form method="get" class="form-inline mb-3">
@@ -13,12 +15,10 @@
         <button type="submit" class="btn btn-secondary">Filter</button>
     </form>
 
-    <!-- Card -->
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="tablePenghapusan" class="table table-bordered">
-                    <thead class="thead-dark">
+    <!-- Table -->
+<div class="table-responsive">
+    <table id="tablePenghapusan" class="table table-bordered">
+                    <thead>
                         <tr>
                             <th>No</th>
                             <th>Nama Barang</th>
@@ -46,9 +46,7 @@
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
+</div>
 
 </div>
 
@@ -98,7 +96,8 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn btn-success">Simpan</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan</button>
         </div>
 
       </form>
